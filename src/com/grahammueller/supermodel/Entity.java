@@ -1,6 +1,7 @@
 package com.grahammueller.supermodel;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class Entity {
     public enum Type { INTEGER_PRIMARY_KEY, NUMERIC, TEXT, BLOB }
@@ -73,19 +74,6 @@ public class Entity {
     }
 
     /**
-     * @return This Entity in string form
-     */
-    public String toString() {
-        StringBuilder sb = new StringBuilder(_name).append('$');
-
-        for (String attribute : _attributes.keySet()) {
-            sb.append(attribute).append(':').append(_attributes.get(attribute).toString()).append('#');
-        }
-
-        return sb.toString();
-    }
-
-    /**
      * Validates a name
      * @param name The name to check
      * @param caller The part of the entity checking for validity
@@ -100,6 +88,24 @@ public class Entity {
 
         if (name.matches("\\d.*"))
             throw new IllegalArgumentException(caller + "name can't start with a number");
+    }
+
+    /**
+     * @return This Entity in string form
+     */
+    public String toString() {
+        StringBuilder sb = new StringBuilder(_name).append('$');
+
+        for (Entry<String, Type> attribute : _attributes.entrySet()) {
+            sb.append(attribute.getKey()).append(':').append(attribute.getValue().toString()).append('#');
+        }
+
+        sb.append("$");
+        for (Entry<String, String> relationship : _relationships.entrySet()) {
+            sb.append(relationship.getKey()).append(':').append(relationship.getValue()).append('#');
+        }
+
+        return sb.toString();
     }
 
     /**
@@ -123,16 +129,24 @@ public class Entity {
         String[] relationships = entityText.substring(attrBreak + 1).split("#");
 
         for (String attribute : attributes) {
+            // Skip empty attributes
+            if (attribute.isEmpty()) continue;
             attrBreak = attribute.indexOf(":");
-            if (attrBreak < 0) throw new IllegalArgumentException("Relationship name not properly specified");
-           String attrName = attribute.substring(0, attrBreak);
+
+            // Report malformed attributes
+            if (attrBreak < 0) throw new IllegalArgumentException("Attribute name not properly specified");
+            String attrName = attribute.substring(0, attrBreak);
             String attrType = attribute.substring(attrBreak + 1);
 
             retEnt.addAttribute(attrName, Type.valueOf(attrType));
         }
 
         for (String relationship : relationships) {
+            // Skip empty relationships
+            if (relationship.isEmpty()) continue;
             int relBreak = relationship.indexOf(":");
+
+            // Report malformed attributes
             if (relBreak < 0) throw new IllegalArgumentException("Relationship name not properly specified");
             String relName = relationship.substring(0, relBreak);
             String relEnt = relationship.substring(relBreak + 1);

@@ -7,6 +7,7 @@ import org.junit.*;
 import com.grahammueller.supermodel.Entity;
 
 public class EntityDriver {
+
     @Test
     public void testStandardEntityCreation() {
         Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
@@ -19,6 +20,19 @@ public class EntityDriver {
         assertTrue(entity.attributes().containsKey("image"));
 
         assertEquals(1, entity.relationships().size());
+    }
+
+    @Test
+    public void testEmptyEntity() {
+        Entity entity = Entity.fromString("Pokemon$$");
+
+        assertEquals(0, entity.attributes().size());
+        assertEquals(0, entity.relationships().size());
+    }
+
+    @Test (expected = IllegalArgumentException.class)
+    public void testMalformedEntityString() {
+        Entity.fromString("Pokemon$");
     }
 
     @Test (expected = IllegalArgumentException.class)
