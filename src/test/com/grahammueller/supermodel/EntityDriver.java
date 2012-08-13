@@ -5,93 +5,168 @@ import static org.junit.Assert.*;
 import org.junit.*;
 
 import com.grahammueller.supermodel.Entity;
+import com.grahammueller.supermodel.EntityManager;
 
 public class EntityDriver {
+    private String failureMessage;
+
+    @Before
+    public void setUp() {
+        EntityManager.clearRegistry();
+        failureMessage = null;
+    }
 
     @Test
     public void testStandardEntityCreation() {
         Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
 
-        assertEquals(4, entity.attributes().size());
+        assertEquals(4, entity.getAttributes().size());
 
-        assertTrue(entity.attributes().containsKey("id"));
-        assertTrue(entity.attributes().containsKey("name"));
-        assertTrue(entity.attributes().containsKey("type"));
-        assertTrue(entity.attributes().containsKey("image"));
+        assertTrue(entity.getAttributes().containsKey("id"));
+        assertTrue(entity.getAttributes().containsKey("name"));
+        assertTrue(entity.getAttributes().containsKey("type"));
+        assertTrue(entity.getAttributes().containsKey("image"));
 
-        assertEquals(1, entity.relationships().size());
+        assertEquals(1, entity.getRelationships().size());
     }
 
     @Test
     public void testEmptyEntity() {
         Entity entity = Entity.fromString("Pokemon$$");
 
-        assertEquals(0, entity.attributes().size());
-        assertEquals(0, entity.relationships().size());
+        assertEquals(0, entity.getAttributes().size());
+        assertEquals(0, entity.getRelationships().size());
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testMalformedEntityString() {
-        Entity.fromString("Pokemon$");
+        try {
+            Entity.fromString("Pokemon$");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Attributes and relationships not properly specified", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testEntityMissingName() {
-        Entity.fromString("id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        try {
+            Entity.fromString("$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Entity name not specified", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
-    public void testEntityNameTooShort() {
-        Entity.fromString("$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-    }
-
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testIllegalCharactersInEntityName() {
-        Entity.fromString("P*kemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        try {
+            Entity.fromString("P*kemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+    
+        assertEquals("Invalid characters in Entity name", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testEntityNameStartsWithANumber() {
-        Entity.fromString("315Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        try {
+            Entity.fromString("315Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Entity name can't start with a number", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testAttributeMissingName() {
-        Entity.fromString("Pokemon$INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        try {
+            Entity.fromString("Pokemon$INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Attribute name not specified", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
-    public void testAttributeNameTooShort() {
-        Entity.fromString("Pokemon$:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-    }
-
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testIllegalCharactersInAttributeName() {
-        Entity.fromString("Pokemon$i*d:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        try {
+            Entity.fromString("Pokemon$i*d:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Invalid characters in Attribute name", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testAttributeNameStartsWithANumber() {
-        Entity.fromString("Pokemon$315id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        try {
+            Entity.fromString("Pokemon$315id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Attribute name can't start with a number", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testRelationshipMissingName() {
-        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$TRAINER#");
+        try {
+            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Relationship name not specified", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testRelationshipNameTooShort() {
-        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$:TRAINER#");
+        try {
+            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Relationship name not specified", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testIllegalCharactersInRelationshipName() {
-        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$ow*ner:TRAINER#");
+        try {
+            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$ow*ner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Invalid characters in Relationship name", failureMessage);
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void testRelationshipNameStartsWithANumber() {
-        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$315owner:TRAINER#");
+        try {
+            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$315owner:TRAINER#");
+        }
+        catch(IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Relationship name can't start with a number", failureMessage);
     }
 }

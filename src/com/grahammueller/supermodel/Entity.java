@@ -22,6 +22,10 @@ public class Entity {
         _name = name;
         _attributes = new HashMap<String, Type>();
         _relationships = new HashMap<String, String>();
+
+        // Attempt to register, throw exception on failure
+        // which indicates another entity with this name exists
+        if(!EntityManager.registerEntity(this)) throw new IllegalArgumentException("Unable to register Entity");
     }
 
     /**
@@ -56,11 +60,19 @@ public class Entity {
     }
 
     /**
+     * Gets the name of thie Entity.
+     * @return The Entity's name
+     */
+    public String getName() {
+        return _name;
+    }
+
+    /**
      * Gets the attributes.
      * TODO this should probably be returning a clone/readonly version
      * @return The Entity's attributes
      */
-    public HashMap<String, Type> attributes() {
+    public HashMap<String, Type> getAttributes() {
         return _attributes;
     }
 
@@ -69,7 +81,7 @@ public class Entity {
      * TODO this should probably be returning a clone/readonly version
      * @return The Entity's relationships
      */
-    public HashMap<String, String> relationships() {
+    public HashMap<String, String> getRelationships() {
         return _relationships;
     }
 
@@ -87,7 +99,7 @@ public class Entity {
             throw new IllegalArgumentException(String.format("Invalid characters in %s name", caller));
 
         if (name.matches("\\d.*"))
-            throw new IllegalArgumentException(caller + "name can't start with a number");
+            throw new IllegalArgumentException(caller + " name can't start with a number");
     }
 
     /**
@@ -134,7 +146,7 @@ public class Entity {
             attrBreak = attribute.indexOf(":");
 
             // Report malformed attributes
-            if (attrBreak < 0) throw new IllegalArgumentException("Attribute name not properly specified");
+            if (attrBreak < 0) throw new IllegalArgumentException("Attribute name not specified");
             String attrName = attribute.substring(0, attrBreak);
             String attrType = attribute.substring(attrBreak + 1);
 
@@ -147,7 +159,7 @@ public class Entity {
             int relBreak = relationship.indexOf(":");
 
             // Report malformed attributes
-            if (relBreak < 0) throw new IllegalArgumentException("Relationship name not properly specified");
+            if (relBreak < 0) throw new IllegalArgumentException("Relationship name not specified");
             String relName = relationship.substring(0, relBreak);
             String relEnt = relationship.substring(relBreak + 1);
 
@@ -155,5 +167,14 @@ public class Entity {
         }
 
         return retEnt;
+    }
+
+    /**
+     * Determines equality based on name.
+     * @param Object other object
+     * @return Whether objects are equal
+     */
+    public boolean equals(Object o) {
+        return (o instanceof Entity) && _name.equals(((Entity) o).getName());
     }
 }
