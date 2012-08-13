@@ -1,4 +1,4 @@
-package com.grahammueller.supermodel;
+package com.grahammueller.supermodel.entity;
 
 import java.util.ArrayList;
 

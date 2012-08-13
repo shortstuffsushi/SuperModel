@@ -4,8 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.*;
 
-import com.grahammueller.supermodel.Entity;
-import com.grahammueller.supermodel.EntityManager;
+import com.grahammueller.supermodel.entity.Entity;
+import com.grahammueller.supermodel.entity.EntityManager;
 
 public class EntityManagerDriver {
 

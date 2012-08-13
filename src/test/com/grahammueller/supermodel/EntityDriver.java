@@ -1,11 +1,13 @@
 package test.com.grahammueller.supermodel;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 
-import com.grahammueller.supermodel.Entity;
-import com.grahammueller.supermodel.EntityManager;
+import com.grahammueller.supermodel.entity.Entity;
+import com.grahammueller.supermodel.entity.EntityManager;
 
 public class EntityDriver {
     private String failureMessage;
