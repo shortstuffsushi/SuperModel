@@ -130,40 +130,45 @@ public class Entity {
     public static Entity fromString(String entityText) throws IllegalArgumentException{
         Entity retEnt = null;
 
-        int nameBreak = entityText.indexOf('$');
-        if (nameBreak < 0) throw new IllegalArgumentException("Entity name not properly specified");
+        entityText = entityText.replace("$$", "$ $").replaceFirst("\\$$", "\\$ ");
+        String[] pieces = entityText.split("\\$");
 
-        int attrBreak = entityText.indexOf('$', nameBreak + 1);
-        if (attrBreak < 0) throw new IllegalArgumentException("Attributes and relationships not properly specified");
+        retEnt = new Entity(pieces[0]);
 
-        retEnt = new Entity(entityText.substring(0, nameBreak));
-        String[] attributes = entityText.substring(nameBreak + 1, attrBreak).split("#");
-        String[] relationships = entityText.substring(attrBreak + 1).split("#");
+        if (pieces.length != 3) {
+          throw new IllegalArgumentException("Entity malformed");
+        }
+
+        String[] attributes = pieces[1].split("#");
+        String[] relationships = pieces[2].split("#");
 
         for (String attribute : attributes) {
+            // Remove leading and trailing spaces
+            attribute = attribute.trim();
+
             // Skip empty attributes
             if (attribute.isEmpty()) continue;
-            attrBreak = attribute.indexOf(":");
 
-            // Report malformed attributes
-            if (attrBreak < 0) throw new IllegalArgumentException("Attribute name not specified");
-            String attrName = attribute.substring(0, attrBreak);
-            String attrType = attribute.substring(attrBreak + 1);
+            String[] attrPieces = attribute.split(":");
 
-            retEnt.addAttribute(attrName, Type.valueOf(attrType));
+            if (attrPieces.length != 2) throw new IllegalArgumentException("Attribute malformed");
+
+            retEnt.addAttribute(attrPieces[0], Type.valueOf(attrPieces[1]));
         }
 
         for (String relationship : relationships) {
+            // Remove leading and trailing spaces
+            relationship = relationship.trim();
+
             // Skip empty relationships
             if (relationship.isEmpty()) continue;
-            int relBreak = relationship.indexOf(":");
+
+            String[] relPieces = relationship.split(":");
 
             // Report malformed attributes
-            if (relBreak < 0) throw new IllegalArgumentException("Relationship name not specified");
-            String relName = relationship.substring(0, relBreak);
-            String relEnt = relationship.substring(relBreak + 1);
+            if (relPieces.length != 2) throw new IllegalArgumentException("Relationship malformed");
 
-            retEnt.addRelationship(relName, relEnt);
+            retEnt.addRelationship(relPieces[0], relPieces[1]);
         }
 
         return retEnt;
