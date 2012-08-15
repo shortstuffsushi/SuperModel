@@ -33,11 +33,27 @@ public class EntityDriver {
     }
 
     @Test
-    public void testEmptyEntity() {
+    public void testAllowEmptyEntity() {
         Entity entity = Entity.fromString("Pokemon$$");
 
         assertEquals(0, entity.getAttributes().size());
         assertEquals(0, entity.getRelationships().size());
+    }
+
+    @Test
+    public void testAllowEmptyRelationships() {
+        Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#$");
+
+        assertEquals(1, entity.getAttributes().size());
+        assertEquals(0, entity.getRelationships().size());
+    }
+
+    @Test
+    public void testAllowEmptyAttributes() {
+        Entity entity = Entity.fromString("Pokemon$$owner:TRAINER#");
+
+        assertEquals(0, entity.getAttributes().size());
+        assertEquals(1, entity.getRelationships().size());
     }
 
     @Test
@@ -49,7 +65,7 @@ public class EntityDriver {
             failureMessage = iae.getMessage();
         }
 
-        assertEquals("Attributes and relationships not properly specified", failureMessage);
+        assertEquals("Entity malformed", failureMessage);
     }
 
     @Test
@@ -97,7 +113,7 @@ public class EntityDriver {
             failureMessage = iae.getMessage();
         }
 
-        assertEquals("Attribute name not specified", failureMessage);
+        assertEquals("Attribute malformed", failureMessage);
     }
 
     @Test
@@ -133,7 +149,7 @@ public class EntityDriver {
             failureMessage = iae.getMessage();
         }
 
-        assertEquals("Relationship name not specified", failureMessage);
+        assertEquals("Relationship malformed", failureMessage);
     }
 
     @Test
