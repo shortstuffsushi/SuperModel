@@ -2,6 +2,7 @@ package com.grahammueller.supermodel.ui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -51,5 +52,18 @@ public class MainWindow extends JFrame {
     public static void setSelectedEntityBodyPane(String entityName) {
         // Use the root entity body pane's layout to show the selected entity
         windowInstance.rootLayout.show(windowInstance.rootEntityBodyPane, entityName);
+    }
+
+    public static void updateEntityName(String oldName, String newName) {
+        for (Component c : windowInstance.rootEntityBodyPane.getComponents()) {
+            // We check oldname again c.name in case
+            // the components name is null
+            if (oldName.equals(c.getName())) {
+                c.setName(newName);
+                windowInstance.rootEntityBodyPane.remove(c);
+                windowInstance.rootEntityBodyPane.add(c, newName);
+            }
+        }
+        setSelectedEntityBodyPane(newName);
     }
 }

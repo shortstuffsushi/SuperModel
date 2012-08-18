@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -15,15 +17,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
-public class EntityPane extends JPanel implements ActionListener, ListSelectionListener {
+public class EntityPane extends JPanel implements ActionListener, ListSelectionListener, PropertyChangeListener {
 
     private static final long serialVersionUID = 1L;
     private static int entityCount = 0;
+    private static String storedName;
 
     private DefaultTableModel entityModel;
     private JScrollPane entityScrollPane;
     private JTable entityTable;
-    private int previouslySelectedRow = -1;
 
     public EntityPane() {
         super(new BorderLayout());
@@ -37,6 +39,7 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
         entityTable.setModel(entityModel);
         entityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         entityTable.getSelectionModel().addListSelectionListener(this);
+        entityTable.addPropertyChangeListener(this);
         entityScrollPane.setViewportView(entityTable);
 
         JButton addButton = new JButton("+");
@@ -70,8 +73,21 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
 
         int selectedRow = entityTable.getSelectedRow();
 
-        if (selectedRow == previouslySelectedRow) return;
-
         MainWindow.setSelectedEntityBodyPane((String) entityModel.getValueAt(selectedRow, 0));
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent e) {
+        if (e.getPropertyName().equals("tableCellEditor")) {
+            int selectedRow = entityTable.getSelectedRow();
+            if (entityTable.isEditing()) {
+                storedName = (String) entityModel.getValueAt(selectedRow, 0);
+            }
+            else {
+                String newName = (String) entityModel.getValueAt(selectedRow, 0);
+
+                MainWindow.updateEntityName(storedName, newName);
+            }
+        }
     }
 }

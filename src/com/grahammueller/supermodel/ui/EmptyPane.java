@@ -11,6 +11,7 @@ public class EmptyPane extends JPanel {
 
     public EmptyPane() {
         super();
+        setName("Empty Pane");
         setPreferredSize(new Dimension(400, 400));
         add(new JLabel("No Selection"));
     }
