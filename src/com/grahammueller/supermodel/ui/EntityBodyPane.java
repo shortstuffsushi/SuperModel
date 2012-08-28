@@ -17,6 +17,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
+import com.grahammueller.supermodel.entity.Attribute;
+
 public class EntityBodyPane extends JPanel implements ActionListener{
 
     private static final long serialVersionUID = 1L;
@@ -39,11 +41,11 @@ public class EntityBodyPane extends JPanel implements ActionListener{
 
         // Set the second column to a combo box
         TableColumn typeColumn = attributeTable.getColumnModel().getColumn(1);
-        JComboBox comboBox = new JComboBox();
-        comboBox.addItem("TEXT");
-        comboBox.addItem("INTEGER PRIMARY KEY");
-        comboBox.addItem("NUMERIC");
-        comboBox.addItem("BLOB");
+        JComboBox<Attribute.Type> comboBox = new JComboBox<Attribute.Type>();
+        comboBox.addItem(Attribute.Type.TEXT);
+        comboBox.addItem(Attribute.Type.INTEGER_PRIMARY_KEY);
+        comboBox.addItem(Attribute.Type.NUMERIC);
+        comboBox.addItem(Attribute.Type.BLOB);
         typeColumn.setCellEditor(new DefaultCellEditor(comboBox));
 
         JButton addButton = new JButton("+");
