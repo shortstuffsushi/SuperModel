@@ -105,7 +105,7 @@ public class Entity {
         StringBuilder sb = new StringBuilder(_name).append('$');
 
         for (Attribute attribute : _attributes) {
-            sb.append(attribute.getName()).append(':').append(attribute.getType()).append('#');
+            sb.append(attribute.getName()).append(':').append(attribute.getType().name()).append('#');
         }
 
         sb.append("$");
