@@ -1,15 +1,11 @@
 package com.grahammueller.supermodel.entity;
 
-import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.grahammueller.supermodel.entity.Attribute.Type;
 
 public class Entity {
-    public enum Type { INTEGER_PRIMARY_KEY, NUMERIC, TEXT, BLOB }
-
-    private String _name;
-    private HashMap<String, Type>_attributes;
-    private HashMap<String, String>_relationships;
-
     /**
      * Default constructor for an Entity
      *
@@ -20,8 +16,8 @@ public class Entity {
         validateName(name, "Entity");
 
         _name = name;
-        _attributes = new HashMap<String, Type>();
-        _relationships = new HashMap<String, String>();
+        _attributes = new ArrayList<Attribute>();
+        _relationships = new ArrayList<Relationship>();
 
         // Attempt to register, throw exception on failure
         // which indicates another entity with this name exists
@@ -35,10 +31,10 @@ public class Entity {
      * @param type The type of the attribute. Can be any of the Entity.Type Enum values.
      * @return Whether the attribute was added
      */
-    public boolean addAttribute(String name, Type type) {
+    public boolean addAttribute(String name, Attribute.Type type) {
         validateName(name, "Attribute");
 
-        _attributes.put(name, type);
+        _attributes.add(new Attribute(type, name));
 
         return true;
     }
@@ -54,13 +50,13 @@ public class Entity {
     public boolean addRelationship(String name, String entity) {
         validateName(name, "Relationship");
 
-        _relationships.put(name, entity);
+       _relationships.add(new Relationship(name, entity));
 
         return true;
     }
 
     /**
-     * Gets the name of thie Entity.
+     * Gets the name of the Entity.
      * @return The Entity's name
      */
     public String getName() {
@@ -72,16 +68,16 @@ public class Entity {
      * TODO this should probably be returning a clone/readonly version
      * @return The Entity's attributes
      */
-    public HashMap<String, Type> getAttributes() {
+    public List<Attribute> getAttributes() {
         return _attributes;
     }
-
+    
     /**
      * Gets the relationships.
      * TODO this should probably be returning a clone/readonly version
      * @return The Entity's relationships
      */
-    public HashMap<String, String> getRelationships() {
+    public List<Relationship> getRelationships() {
         return _relationships;
     }
 
@@ -108,13 +104,13 @@ public class Entity {
     public String toString() {
         StringBuilder sb = new StringBuilder(_name).append('$');
 
-        for (Entry<String, Type> attribute : _attributes.entrySet()) {
-            sb.append(attribute.getKey()).append(':').append(attribute.getValue().toString()).append('#');
+        for (Attribute attribute : _attributes) {
+            sb.append(attribute.getName()).append(':').append(attribute.getType()).append('#');
         }
 
         sb.append("$");
-        for (Entry<String, String> relationship : _relationships.entrySet()) {
-            sb.append(relationship.getKey()).append(':').append(relationship.getValue()).append('#');
+        for (Relationship relationship : _relationships) {
+          sb.append(relationship.getName()).append(':').append(relationship.getValue()).append('#');
         }
 
         return sb.toString();
@@ -182,4 +178,8 @@ public class Entity {
     public boolean equals(Object o) {
         return (o instanceof Entity) && _name.equals(((Entity) o).getName());
     }
+
+    private String _name;
+    private List<Attribute> _attributes;
+    private List<Relationship> _relationships;
 }

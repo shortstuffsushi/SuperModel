@@ -3,9 +3,12 @@ package test.com.grahammueller.supermodel;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import com.grahammueller.supermodel.entity.Attribute;
 import com.grahammueller.supermodel.entity.Entity;
 import com.grahammueller.supermodel.entity.EntityManager;
 
@@ -22,12 +25,13 @@ public class EntityDriver {
     public void testStandardEntityCreation() {
         Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
 
-        assertEquals(4, entity.getAttributes().size());
+        List<Attribute> attributes = entity.getAttributes();
+        assertEquals(4, attributes.size());
 
-        assertTrue(entity.getAttributes().containsKey("id"));
-        assertTrue(entity.getAttributes().containsKey("name"));
-        assertTrue(entity.getAttributes().containsKey("type"));
-        assertTrue(entity.getAttributes().containsKey("image"));
+        assertTrue(attributes.get(0).getName().equals("id"));
+        assertTrue(attributes.get(1).getName().equals("name"));
+        assertTrue(attributes.get(2).getName().equals("type"));
+        assertTrue(attributes.get(3).getName().equals("image"));
 
         assertEquals(1, entity.getRelationships().size());
     }
