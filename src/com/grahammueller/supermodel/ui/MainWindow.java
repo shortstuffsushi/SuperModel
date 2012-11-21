@@ -7,6 +7,8 @@ import java.awt.Component;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import com.grahammueller.supermodel.entity.Entity;
+
 public class MainWindow extends JFrame {
     private static final long serialVersionUID = 1L;
     private static MainWindow windowInstance;
@@ -38,15 +40,15 @@ public class MainWindow extends JFrame {
         pack();
     }
 
-    public static void addNewEntityBodyPane(String entityName) {
+    public static void addNewEntityBodyPane(Entity entity) {
         // Generate the new entity body pane
-        EntityBodyPane newEntityPane = new EntityBodyPane(entityName);
+        EntityBodyPane newEntityPane = new EntityBodyPane(entity);
 
         // Add it to our card layout
-        windowInstance.rootEntityBodyPane.add(newEntityPane, entityName);
+        windowInstance.rootEntityBodyPane.add(newEntityPane, entity.getName());
 
         // Set it to the actively displayed item
-        setSelectedEntityBodyPane(entityName);
+        setSelectedEntityBodyPane(entity.getName());
     }
 
     public static void setSelectedEntityBodyPane(String entityName) {

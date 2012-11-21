@@ -13,7 +13,7 @@ public class Entity {
      * @throws IllegalArgumentException Invalid Entity Name specified
      */
     public Entity(String name) throws IllegalArgumentException {
-        validateName(name, "Entity");
+        EntityManager.validateName(name, "Entity");
 
         _name = name;
         _attributes = new ArrayList<Attribute>();
@@ -28,13 +28,12 @@ public class Entity {
      * Method for adding attributes to an Entity
      *
      * @param name The attribute name. Follows same naming convention as an Entity.
-     * @param type The type of the attribute. Can be any of the Entity.Type Enum values.
+     * @param type The type of the attribute. Can be any of the Attribute.Type Enum values.
+     * @throws IllegalArgumentException Invalid Attribute Name specified
      * @return Whether the attribute was added
      */
-    public boolean addAttribute(String name, Attribute.Type type) {
-        validateName(name, "Attribute");
-
-        _attributes.add(new Attribute(type, name));
+    public boolean addAttribute(String name, Attribute.Type type) throws IllegalArgumentException {
+        _attributes.add(new Attribute(name, type));
 
         return true;
     }
@@ -45,10 +44,11 @@ public class Entity {
      * @param name The relationship name. Follows same naming convention as an Entity.
      * @param type The Entity name of the linked Entity. Can be anything, but when validation
      *             is run, it will check to see that an Entity with the name exists
+     * @throws IllegalArgumentException Invalid Relationship Name specified
      * @return Whether the attribute was added
      */
-    public boolean addRelationship(String name, String entity) {
-        validateName(name, "Relationship");
+    public boolean addRelationship(String name, String entity) throws IllegalArgumentException {
+    	EntityManager.validateName(name, "Relationship");
 
        _relationships.add(new Relationship(name, entity));
 
@@ -62,6 +62,24 @@ public class Entity {
     public String getName() {
         return _name;
     }
+    
+    /**
+     * Attempts to update Entity name, if it is valid
+     * and no Entity already exists with the same name
+     * 
+     * @param name The new name
+     * @throws IllegalArgumentException Invalid Entity Name specified
+     * @return Whether set was successful
+     */
+    public boolean setName(String name) throws IllegalArgumentException {
+    	if (EntityManager.containsName(name)) { return false; }
+    	
+    	EntityManager.validateName(name, "Entity");
+    	
+    	_name = name;
+    
+    	return true;
+    }
 
     /**
      * Gets the attributes.
@@ -73,29 +91,45 @@ public class Entity {
     }
     
     /**
+     * Attempts to get and set an attribute's name
+     * 
+     * @param oldName The desired attribute's name
+     * @param newName The new name for that attribute
+     * @throws IllegalArgumentException Invalid Attribute Name specified
+     * @return Whether set was successful
+     */
+    public boolean updateAttributeName(String oldName, String newName) {
+    	Attribute storedAttr = null;
+    	
+    	for (int i = 0; i < _attributes.size(); i++) {
+    		Attribute attr = _attributes.get(i);
+ 
+    		// Found stored attribute
+    		if (attr.getName().equals(oldName)) {
+    			storedAttr = attr;
+    		}
+    		
+    		// Attribute name is in use
+    		if (attr.getName().equals(newName)) {
+    			return false;
+    		}
+    	}
+    	
+    	// No attribute with old name found
+    	if (storedAttr == null) { return false; }
+    	
+    	storedAttr.setName(newName);
+    	
+    	return true;
+    }
+    
+    /**
      * Gets the relationships.
      * TODO this should probably be returning a clone/readonly version
      * @return The Entity's relationships
      */
     public List<Relationship> getRelationships() {
         return _relationships;
-    }
-
-    /**
-     * Validates a name
-     * @param name The name to check
-     * @param caller The part of the entity checking for validity
-     * @throws IllegalArgumentException For invalid names
-     */
-    private void validateName(String name, String caller) throws IllegalArgumentException {
-        if (name.isEmpty())
-            throw new IllegalArgumentException(caller + " name not specified");
-
-        if (name.matches(".*\\W.*"))
-            throw new IllegalArgumentException(String.format("Invalid characters in %s name", caller));
-
-        if (name.matches("\\d.*"))
-            throw new IllegalArgumentException(caller + " name can't start with a number");
     }
 
     /**

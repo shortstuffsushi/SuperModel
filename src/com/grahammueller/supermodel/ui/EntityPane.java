@@ -7,8 +7,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -17,11 +19,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
+import com.grahammueller.supermodel.entity.Entity;
+
 public class EntityPane extends JPanel implements ActionListener, ListSelectionListener, PropertyChangeListener {
 
     private static final long serialVersionUID = 1L;
     private static int entityCount = 0;
     private static String storedName;
+    
+    private static ArrayList<Entity> entities = new ArrayList<Entity>();
 
     private DefaultTableModel entityModel;
     private JScrollPane entityScrollPane;
@@ -62,8 +68,13 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
     @Override
     public void actionPerformed(ActionEvent e) {
         String newEntityName = "NewEntity" + entityCount++;
+        
+        Entity newEntity = new Entity(newEntityName);
+        entities.add(newEntity);
+        
         entityModel.addRow(new String[] { newEntityName });
-        MainWindow.addNewEntityBodyPane(newEntityName);
+
+        MainWindow.addNewEntityBodyPane(newEntity);
     }
 
     @Override
@@ -85,8 +96,22 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
             }
             else {
                 String newName = (String) entityModel.getValueAt(selectedRow, 0);
-
-                MainWindow.updateEntityName(storedName, newName);
+                
+                // If something goes wrong with the set,
+                // revert to the stored one and report the issue.
+                try {
+	                if (!entities.get(selectedRow).setName(newName)) {
+	                	JOptionPane.showMessageDialog(this, "Entity name already in use.");
+	                	entityModel.setValueAt(storedName, selectedRow, 0);
+	                }
+	                else {
+	                	MainWindow.updateEntityName(storedName, newName);
+	                }
+                }
+                catch (IllegalArgumentException iae) {
+                	JOptionPane.showMessageDialog(this, iae.getMessage());
+                	entityModel.setValueAt(storedName, selectedRow, 0);
+                }
             }
         }
     }
