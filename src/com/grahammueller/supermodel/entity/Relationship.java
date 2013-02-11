@@ -1,7 +1,6 @@
 package com.grahammueller.supermodel.entity;
 
 public class Relationship {
-    // TODO
     public Relationship(String name, String value) {
       _name = name;
       _value = value;

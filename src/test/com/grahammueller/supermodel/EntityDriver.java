@@ -64,8 +64,7 @@ public class EntityDriver {
     public void testMalformedEntityString() {
         try {
             Entity.fromString("Pokemon$");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -76,8 +75,7 @@ public class EntityDriver {
     public void testEntityMissingName() {
         try {
             Entity.fromString("$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -88,11 +86,10 @@ public class EntityDriver {
     public void testIllegalCharactersInEntityName() {
         try {
             Entity.fromString("P*kemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
-    
+
         assertEquals("Invalid characters in Entity name", failureMessage);
     }
 
@@ -100,8 +97,7 @@ public class EntityDriver {
     public void testEntityNameStartsWithANumber() {
         try {
             Entity.fromString("315Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -112,8 +108,7 @@ public class EntityDriver {
     public void testAttributeMissingName() {
         try {
             Entity.fromString("Pokemon$INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -124,8 +119,7 @@ public class EntityDriver {
     public void testIllegalCharactersInAttributeName() {
         try {
             Entity.fromString("Pokemon$i*d:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -136,8 +130,7 @@ public class EntityDriver {
     public void testAttributeNameStartsWithANumber() {
         try {
             Entity.fromString("Pokemon$315id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -148,8 +141,7 @@ public class EntityDriver {
     public void testRelationshipMissingName() {
         try {
             Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -160,8 +152,7 @@ public class EntityDriver {
     public void testRelationshipNameTooShort() {
         try {
             Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -172,8 +163,7 @@ public class EntityDriver {
     public void testIllegalCharactersInRelationshipName() {
         try {
             Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$ow*ner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
@@ -184,8 +174,7 @@ public class EntityDriver {
     public void testRelationshipNameStartsWithANumber() {
         try {
             Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$315owner:TRAINER#");
-        }
-        catch(IllegalArgumentException iae) {
+        } catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 

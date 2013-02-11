@@ -7,7 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -20,33 +22,25 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 import com.grahammueller.supermodel.entity.Entity;
+import com.grahammueller.supermodel.gen.Generator;
 
 public class EntityPane extends JPanel implements ActionListener, ListSelectionListener, PropertyChangeListener {
-
-    private static final long serialVersionUID = 1L;
-    private static int entityCount = 0;
-    private static String storedName;
-    
-    private static ArrayList<Entity> entities = new ArrayList<Entity>();
-
-    private DefaultTableModel entityModel;
-    private JScrollPane entityScrollPane;
-    private JTable entityTable;
-
     public EntityPane() {
         super(new BorderLayout());
         setName("Entity Pane");
         setPreferredSize(new Dimension(200, 400));
 
-        entityScrollPane = new JScrollPane();
-        entityTable = new JTable();
-        entityModel = new DefaultTableModel( new String [] { "Entity" }, 0);
+        _entities = new ArrayList<Entity>();
 
-        entityTable.setModel(entityModel);
-        entityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        entityTable.getSelectionModel().addListSelectionListener(this);
-        entityTable.addPropertyChangeListener(this);
-        entityScrollPane.setViewportView(entityTable);
+        _entityScrollPane = new JScrollPane();
+        _entityTable = new JTable();
+        _entityModel = new DefaultTableModel( new String [] { "Entity" }, 0);
+
+        _entityTable.setModel(_entityModel);
+        _entityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        _entityTable.getSelectionModel().addListSelectionListener(this);
+        _entityTable.addPropertyChangeListener(this);
+        _entityScrollPane.setViewportView(_entityTable);
 
         JButton addButton = new JButton("+");
         addButton.addActionListener(this);
@@ -61,18 +55,18 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
             buttonPanel.add(new JPanel());
         }
 
-        add(entityScrollPane, BorderLayout.CENTER);
+        add(_entityScrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         String newEntityName = "NewEntity" + entityCount++;
-        
+
         Entity newEntity = new Entity(newEntityName);
-        entities.add(newEntity);
-        
-        entityModel.addRow(new String[] { newEntityName });
+        _entities.add(newEntity);
+
+        _entityModel.addRow(new String[] { newEntityName });
 
         MainWindow.addNewEntityBodyPane(newEntity);
     }
@@ -82,37 +76,55 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
         // Adjusting indicates mouse still down
         if (e.getValueIsAdjusting()) return;
 
-        int selectedRow = entityTable.getSelectedRow();
+        int selectedRow = _entityTable.getSelectedRow();
 
-        MainWindow.setSelectedEntityBodyPane((String) entityModel.getValueAt(selectedRow, 0));
+        MainWindow.setSelectedEntityBodyPane((String) _entityModel.getValueAt(selectedRow, 0));
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (e.getPropertyName().equals("tableCellEditor")) {
-            int selectedRow = entityTable.getSelectedRow();
-            if (entityTable.isEditing()) {
-                storedName = (String) entityModel.getValueAt(selectedRow, 0);
+            int selectedRow = _entityTable.getSelectedRow();
+            if (_entityTable.isEditing()) {
+                _storedName = (String) _entityModel.getValueAt(selectedRow, 0);
             }
             else {
-                String newName = (String) entityModel.getValueAt(selectedRow, 0);
-                
+                String newName = (String) _entityModel.getValueAt(selectedRow, 0);
+
                 // If something goes wrong with the set,
                 // revert to the stored one and report the issue.
                 try {
-	                if (!entities.get(selectedRow).setName(newName)) {
-	                	JOptionPane.showMessageDialog(this, "Entity name already in use.");
-	                	entityModel.setValueAt(storedName, selectedRow, 0);
-	                }
-	                else {
-	                	MainWindow.updateEntityName(storedName, newName);
-	                }
+                    if (!_entities.get(selectedRow).setName(newName)) {
+                        JOptionPane.showMessageDialog(this, "Entity name already in use.");
+                        _entityModel.setValueAt(_storedName, selectedRow, 0);
+                    }
+                    else {
+                        MainWindow.updateEntityName(_storedName, newName);
+                    }
                 }
                 catch (IllegalArgumentException iae) {
-                	JOptionPane.showMessageDialog(this, iae.getMessage());
-                	entityModel.setValueAt(storedName, selectedRow, 0);
+                    JOptionPane.showMessageDialog(this, iae.getMessage());
+                    _entityModel.setValueAt(_storedName, selectedRow, 0);
                 }
             }
         }
     }
+
+    public void generateCodeFiles() {
+        try {
+            Generator.generateEntitiesFiles(_entities, "/Users/gmueller/Desktop");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
+    private static final long serialVersionUID = 1L;
+    private static int entityCount = 0;
+
+    private DefaultTableModel _entityModel;
+    private JScrollPane _entityScrollPane;
+    private JTable _entityTable;
+    private String _storedName;
+    private List<Entity> _entities;
 }

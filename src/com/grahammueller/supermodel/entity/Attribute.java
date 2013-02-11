@@ -17,12 +17,12 @@ public class Attribute {
      * @throws IllegalArgumentException Invalid Attribute Name specified
      */
     public Attribute(String name, Attribute.Type type) throws IllegalArgumentException {
-    	EntityManager.validateName(name, "Attribute");
- 
+        EntityManager.validateName(name, "Attribute");
+
         _type = type;
         _name = name;
     }
-    
+
     /**
      * Gets the attribute's name
      * @return The name
@@ -37,7 +37,7 @@ public class Attribute {
      * @throws IllegalArgumentException Invalid Attribute Name specified
      */
     public void setName(String name) {
-    	EntityManager.validateName(name, "Attibute");
+        EntityManager.validateName(name, "Attibute");
 
         _name = name;
     }
@@ -58,7 +58,7 @@ public class Attribute {
     public void setType(Attribute.Type type) {
         _type = type;
     }
-    
+
     private String _name;
     private Attribute.Type _type;
 }
