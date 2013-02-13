@@ -7,10 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -20,7 +19,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
-
 import com.grahammueller.supermodel.entity.Entity;
 import com.grahammueller.supermodel.gen.Generator;
 
@@ -34,7 +32,7 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
 
         _entityScrollPane = new JScrollPane();
         _entityTable = new JTable();
-        _entityModel = new DefaultTableModel( new String [] { "Entity" }, 0);
+        _entityModel = new DefaultTableModel(new String[] { "Entity" }, 0);
 
         _entityTable.setModel(_entityModel);
         _entityTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -61,7 +59,7 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String newEntityName = "NewEntity" + entityCount++;
+        String newEntityName = "NewEntity" + _entityCount++;
 
         Entity newEntity = new Entity(newEntityName);
         _entities.add(newEntity);
@@ -74,7 +72,9 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
     @Override
     public void valueChanged(ListSelectionEvent e) {
         // Adjusting indicates mouse still down
-        if (e.getValueIsAdjusting()) return;
+        if (e.getValueIsAdjusting()) {
+            return;
+        }
 
         int selectedRow = _entityTable.getSelectedRow();
 
@@ -110,18 +110,29 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
         }
     }
 
-    public void generateCodeFiles() {
+    public void generateCodeFiles(File directory) {
         try {
-            Generator.generateEntitiesFiles(_entities, "/Users/gmueller/Desktop");
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            generateCodeFiles(directory, false);
+        }
+        catch (Exception e) {
+            if (e instanceof IllegalArgumentException) {
+                try {
+                    if (JOptionPane.showConfirmDialog(this, "Overwrite existing files?") == JOptionPane.OK_OPTION) {
+                        generateCodeFiles(directory, true);
+                    }
+                }
+                catch (Exception inner) { }
+            }
         }
     }
 
-    private static final long serialVersionUID = 1L;
-    private static int entityCount = 0;
+    private void generateCodeFiles(File directory, boolean override) throws Exception {
+        Generator.generateEntitiesFiles(_entities, directory, override);
+    }
 
+    private static final long serialVersionUID = 1L;
+
+    private int _entityCount;
     private DefaultTableModel _entityModel;
     private JScrollPane _entityScrollPane;
     private JTable _entityTable;

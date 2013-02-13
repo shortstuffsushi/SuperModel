@@ -3,7 +3,9 @@ package com.grahammueller.supermodel.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -33,7 +35,14 @@ public class MenuBar extends JMenuBar implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == _build) {
-            MainWindow.generateCodeFiles();
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int retVal = chooser.showOpenDialog(this);
+
+            if (retVal == JFileChooser.APPROVE_OPTION) {
+                File dir = chooser.getSelectedFile();
+                MainWindow.generateCodeFiles(dir);
+            }
         }
         else if (e.getSource() == _exit) {
             System.exit(0);

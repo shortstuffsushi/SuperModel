@@ -1,14 +1,6 @@
 package com.grahammueller.supermodel.entity;
 
 public class Attribute {
-    public enum Type { 
-        INTEGER_PRIMARY_KEY, NUMERIC, TEXT, BLOB; 
-
-        public String toString() {
-            return name().replace('_', ' ');
-        }
-    }
-
     /**
      * Creates an Attribute for an Entity
      *
@@ -16,7 +8,7 @@ public class Attribute {
      * @param name The attribute name
      * @throws IllegalArgumentException Invalid Attribute Name specified
      */
-    public Attribute(String name, Attribute.Type type) throws IllegalArgumentException {
+    public Attribute(String name, AttributeType type) throws IllegalArgumentException {
         EntityManager.validateName(name, "Attribute");
 
         _type = type;
@@ -47,7 +39,7 @@ public class Attribute {
      * Gets the attribute's type
      * @return The type
      */
-    public Attribute.Type getType() {
+    public AttributeType getType() {
         return _type;
     }
 
@@ -55,10 +47,10 @@ public class Attribute {
      * Attempts to set the attribute's type
      * @param type The type
      */
-    public void setType(Attribute.Type type) {
+    public void setType(AttributeType type) {
         _type = type;
     }
 
     private String _name;
-    private Attribute.Type _type;
+    private AttributeType _type;
 }

@@ -6,9 +6,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class EntityManager {
-    private static ArrayList<Entity> entities = new ArrayList<Entity>();
-    private static ArrayList<EntityManagerListener> listeners = new ArrayList<EntityManagerListener>();
-
     /**
      * Register Entity to the list of registered Entity if one with the same name doesn't exist
      * 
@@ -19,9 +16,9 @@ public class EntityManager {
         // Don't add if we've already got it
         if (containsEntity(e)) { return false; }
 
-        entities.add(e);
+        _entities.add(e);
 
-        for (EntityManagerListener listener : listeners) {
+        for (EntityManagerListener listener : _listeners) {
             listener.entityAdded(e);
         }
 
@@ -49,7 +46,7 @@ public class EntityManager {
 
         e._name = newName;
 
-        for (EntityManagerListener listener : listeners) {
+        for (EntityManagerListener listener : _listeners) {
             listener.entityUpdated(e, updates);
         }
 
@@ -63,7 +60,7 @@ public class EntityManager {
      * @return Whether it is registered
      */
     protected static boolean containsName(String name) {
-        for (Entity e : entities) {
+        for (Entity e : _entities) {
             if (e.getName().equals(name)) { return true; }
         }
 
@@ -92,14 +89,14 @@ public class EntityManager {
      * @return Whether it is registered
      */
     public static boolean containsEntity(Entity e) {
-        return entities.contains(e);
+        return _entities.contains(e);
     }
 
     /**
      * Removes all registered Entities
      */
     public static void clearRegistry() {
-        entities.clear();
+        _entities.clear();
     }
 
     /**
@@ -110,7 +107,7 @@ public class EntityManager {
     public static List<String> nameList() {
         ArrayList<String> names = new ArrayList<String>();
 
-        for (Entity e : entities) {
+        for (Entity e : _entities) {
             names.add(e.getName());
         }
 
@@ -122,39 +119,9 @@ public class EntityManager {
      * @param eml The EntityManagerListener to be added
      */
     public static void registerForEntityUpdates(EntityManagerListener eml) {
-        listeners.add(eml);
+        _listeners.add(eml);
     }
 
-    /**
-     * Interface for classes that need to be informed
-     * about updates to the managed list of Entities.
-     */
-    public interface EntityManagerListener {
-        /**
-         * This method will be called any time a new Entity is added to the Entity Managed
-         * 
-         * @param e The entity being added
-         */
-        public void entityAdded(Entity e);
-
-        /**
-         * This method will be called any time an Entity is updated to in Entity Managed
-         * 
-         * @param e The entity being added
-         * @param updateInfo Map of update information of form
-         *        {
-         *            "name" : "updated-attribute-name-string",
-         *            "new"  : <new-value-object>,
-         *            "old"  : <old-value-object> (when relevant) 
-         *        }
-         */
-        public void entityUpdated(Entity e, Map<String, Object> updateInfo);
-
-        /**
-         * This method will be called any time an Entity is removed from the Entity Manager
-         * 
-         * @param e The entity being removed
-         */
-        public void entityRemoved(Entity e);
-    }
+    private static ArrayList<Entity> _entities = new ArrayList<Entity>();
+    private static ArrayList<EntityManagerListener> _listeners = new ArrayList<EntityManagerListener>();
 }

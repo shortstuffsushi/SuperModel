@@ -3,8 +3,6 @@ package com.grahammueller.supermodel.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.grahammueller.supermodel.entity.Attribute.Type;
-
 public class Entity {
     protected String _name;
     protected List<Attribute> _attributes;
@@ -56,7 +54,7 @@ public class Entity {
      * @throws IllegalArgumentException Invalid Attribute Name specified
      * @return Whether the attribute was added
      */
-    public void addAttribute(String name, Attribute.Type type) throws IllegalArgumentException {
+    public void addAttribute(String name, AttributeType type) throws IllegalArgumentException {
         _attributes.add(new Attribute(name, type));
     }
 
@@ -89,6 +87,43 @@ public class Entity {
         }
 
         storedAttr.setName(newName);
+
+        return true;
+    }
+
+    /**
+     * Attempts to set an attribute's type
+     * 
+     * @param name The desired attribute's name
+     * @param type The new type for that attribute
+     * @throws IllegalArgumentException If trying to set a primary key with one previously specified
+     * @return Whether set was successful
+     */
+    public boolean updateAttributeType(String name, AttributeType type) {
+        Attribute storedAttr = null;
+        boolean hasPrimaryKey = false;
+
+        for (Attribute attr : _attributes) {
+            // Found stored attribute
+            if (attr.getName().equals(name)) {
+                storedAttr = attr;
+            }
+
+            // Already has an Integer Primary Key
+            if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
+                hasPrimaryKey = true;
+            }
+        }
+
+        if (storedAttr == null) {
+            return false;
+        }
+
+        if (type == AttributeType.INTEGER_PRIMARY_KEY && hasPrimaryKey) {
+            throw new IllegalArgumentException("Already has primary key");
+        }
+
+        storedAttr.setType(type);
 
         return true;
     }
@@ -217,7 +252,7 @@ public class Entity {
                 throw new IllegalArgumentException("Attribute malformed");
             }
 
-            retEnt.addAttribute(attrPieces[0], Type.valueOf(attrPieces[1]));
+            retEnt.addAttribute(attrPieces[0], AttributeType.valueOf(attrPieces[1]));
         }
 
         for (String relationship : relationships) {

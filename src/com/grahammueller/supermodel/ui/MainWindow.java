@@ -3,6 +3,7 @@ package com.grahammueller.supermodel.ui;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -63,8 +64,8 @@ public class MainWindow extends JFrame {
         setSelectedEntityBodyPane(newName);
     }
 
-    public static void generateCodeFiles() {
-        windowInstance._entityPane.generateCodeFiles();
+    public static void generateCodeFiles(File directory) {
+        windowInstance._entityPane.generateCodeFiles(directory);
     }
 
     private static final long serialVersionUID = 1L;

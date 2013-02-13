@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
-
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -21,10 +20,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-
 import com.grahammueller.supermodel.entity.Entity;
 import com.grahammueller.supermodel.entity.EntityManager;
-import com.grahammueller.supermodel.entity.EntityManager.EntityManagerListener;
+import com.grahammueller.supermodel.entity.EntityManagerListener;
 import com.grahammueller.supermodel.entity.Relationship;
 
 public class RelationshipPane extends JPanel  implements ActionListener, ListSelectionListener, PropertyChangeListener, EntityManagerListener {
