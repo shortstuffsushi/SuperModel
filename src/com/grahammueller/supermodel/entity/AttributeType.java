@@ -1,8 +1,8 @@
 package com.grahammueller.supermodel.entity;
 
 /**
- * This enum represents the SQLite data types that
- * an attribute can be mapped to.
+ * This enum represents the SQLite data types
+ * that an attribute can be mapped to.
  */
 public enum AttributeType {
     INTEGER_PRIMARY_KEY, NUMERIC, TEXT, BLOB; 
@@ -28,8 +28,21 @@ public enum AttributeType {
             case NUMERIC : return "double";
             case TEXT :
             case BLOB : return "String";
+            default : return "";
         }
+    }
 
-        return "";
+    /**
+     * Gets the string for the SQL column definition
+     * @return This, in SQL column definition form
+     */
+    public String toSQLString() {
+        switch (this) {
+            case INTEGER_PRIMARY_KEY : return "INTEGER PRIMARY KEY AUTOINCREMENT";
+            case NUMERIC :
+            case TEXT :
+            case BLOB :
+            default : return toString();
+        }
     }
 }

@@ -3,6 +3,11 @@ package com.grahammueller.supermodel.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * An Entity, represents a Plain Old Java Object, or POJO.
+ * This Entity will be mapped to a Database table, allowing
+ * for simple data storage and interaction.
+ */
 public class Entity {
     protected String _name;
     protected List<Attribute> _attributes;

@@ -5,6 +5,14 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * The manager of Entity interaction.
+ * Validates interaction with Entity objects.
+ * 
+ * TODO It would be nicer if this acted more as a Factory,
+ *      Entities were created and updated by interacting
+ *      with the manager, rather than the object.
+ */
 public class EntityManager {
     /**
      * Register Entity to the list of registered Entity if one with the same name doesn't exist
@@ -120,6 +128,15 @@ public class EntityManager {
      */
     public static void registerForEntityUpdates(EntityManagerListener eml) {
         _listeners.add(eml);
+    }
+
+    /**
+     * Gets all entities.
+     * TODO read-only or copy
+     * @return All the Entity objects
+     */
+    public static List<Entity> getAllEntities() {
+        return _entities;
     }
 
     private static ArrayList<Entity> _entities = new ArrayList<Entity>();

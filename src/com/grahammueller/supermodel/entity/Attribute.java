@@ -1,5 +1,8 @@
 package com.grahammueller.supermodel.entity;
 
+/**
+ * An Attribute, or property, on an Entity.
+ */
 public class Attribute {
     /**
      * Creates an Attribute for an Entity
@@ -34,7 +37,6 @@ public class Attribute {
         _name = name;
     }
 
-    
     /**
      * Gets the attribute's type
      * @return The type

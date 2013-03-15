@@ -20,7 +20,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import com.grahammueller.supermodel.entity.Entity;
-import com.grahammueller.supermodel.gen.Generator;
+import com.grahammueller.supermodel.gen.sqliteorm.ClassGenerator;
 
 public class EntityPane extends JPanel implements ActionListener, ListSelectionListener, PropertyChangeListener {
     public EntityPane() {
@@ -127,7 +127,7 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
     }
 
     private void generateCodeFiles(File directory, boolean override) throws Exception {
-        Generator.generateEntitiesFiles(_entities, directory, override);
+        ClassGenerator.generateEntitiesFiles(directory, override);
     }
 
     private static final long serialVersionUID = 1L;
