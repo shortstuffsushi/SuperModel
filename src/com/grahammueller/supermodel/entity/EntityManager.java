@@ -18,31 +18,30 @@ public class EntityManager {
      * Register Entity to the list of registered Entity if one with the same name doesn't exist
      * 
      * @param Entity the new Entity
-     * @return Whether the entity has been added
+     * @throws IllegalArgumentException Entity already exists
      */
-    protected static boolean registerEntity(Entity e) {
+    protected static void registerEntity(Entity e) {
         // Don't add if we've already got it
-        if (containsEntity(e)) { return false; }
+        if (containsEntity(e)) {
+            throw new IllegalArgumentException("Entity already registered");
+        }
 
         _entities.add(e);
 
         for (EntityManagerListener listener : _listeners) {
             listener.entityAdded(e);
         }
-
-        return true;
     }
 
     /**
      * Attempts to update Entity name, if it is valid and no Entity already exists with the same name
      * 
      * @param name The new name
-     * @throws IllegalArgumentException Invalid Entity Name specified
-     * @return Whether set was successful
+     * @throws IllegalArgumentException Invalid Entity Name specified, or name already in use
      */
-    protected static boolean updateEntityName(Entity e, String newName) {
-        if (containsName(newName)) {
-            return false;
+    protected static void updateEntityName(Entity e, String newName) {
+        if (containsEntity(newName)) {
+            throw new IllegalArgumentException("Entity name already in use");
         }
 
         validateName(newName, "Entity");
@@ -57,22 +56,26 @@ public class EntityManager {
         for (EntityManagerListener listener : _listeners) {
             listener.entityUpdated(e, updates);
         }
-
-        return true;
     }
 
     /**
-     * Determines if an Entity Name is registered
+     * Determines if an Entity is already registered
      * 
      * @param Name the Name to look for
      * @return Whether it is registered
      */
-    protected static boolean containsName(String name) {
-        for (Entity e : _entities) {
-            if (e.getName().equals(name)) { return true; }
-        }
+    public static boolean containsEntity(String name) {
+        return getEntityByName(name) != null;
+    }
 
-        return false;
+    /**
+     * Determines if an Entity is already registered
+     * 
+     * @param Name the Name to look for
+     * @return Whether it is registered
+     */
+    public static boolean containsEntity(Entity e) {
+        return _entities.contains(e);
     }
 
     /**
@@ -83,21 +86,11 @@ public class EntityManager {
      * @throws IllegalArgumentException For invalid names
      */
     protected static void validateName(String name, String caller) throws IllegalArgumentException {
-        if (name.isEmpty()) { throw new IllegalArgumentException(caller + " name not specified"); }
+        if (name == null || name.isEmpty()) { throw new IllegalArgumentException(caller + " name not specified"); }
 
         if (name.matches(".*\\W.*")) { throw new IllegalArgumentException(String.format("Invalid characters in %s name", caller)); }
 
         if (name.matches("\\d.*")) { throw new IllegalArgumentException(caller + " name can't start with a number"); }
-    }
-
-    /**
-     * Determines if an Entity is registered
-     * 
-     * @param Entity the Entity to look for
-     * @return Whether it is registered
-     */
-    public static boolean containsEntity(Entity e) {
-        return _entities.contains(e);
     }
 
     /**
@@ -137,6 +130,20 @@ public class EntityManager {
      */
     public static List<Entity> getAllEntities() {
         return _entities;
+    }
+
+    /**
+     * Tries to get specified Entity.
+     * @return Entity requested, or null.
+     */
+    public static Entity getEntityByName(String entityName) {
+        for (Entity entity : _entities) {
+            if (entity.getName().equals(entityName)) {
+                return entity;
+            }
+        }
+
+        return null;
     }
 
     private static ArrayList<Entity> _entities = new ArrayList<Entity>();

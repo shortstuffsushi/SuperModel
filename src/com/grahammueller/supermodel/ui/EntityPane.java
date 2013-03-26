@@ -94,13 +94,8 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
                 // If something goes wrong with the set,
                 // revert to the stored one and report the issue.
                 try {
-                    if (!_entities.get(selectedRow).setName(newName)) {
-                        JOptionPane.showMessageDialog(this, "Entity name already in use.");
-                        _entityModel.setValueAt(_storedName, selectedRow, 0);
-                    }
-                    else {
-                        MainWindow.updateEntityName(_storedName, newName);
-                    }
+                    _entities.get(selectedRow).setName(newName);
+                    MainWindow.updateEntityName(_storedName, newName);
                 }
                 catch (IllegalArgumentException iae) {
                     JOptionPane.showMessageDialog(this, iae.getMessage());

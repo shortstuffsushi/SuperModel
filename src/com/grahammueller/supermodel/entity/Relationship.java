@@ -5,16 +5,14 @@ package com.grahammueller.supermodel.entity;
  */
 public class Relationship {
     /**
-     * Creates a Relationship for an Entity. This does not
-     * validate that the other Entity (the value) exists, in
-     * case it has not yet been created.
+     * Creates a Relationship for an Entity.
      * 
      * @param name The name for the Relationship
-     * @param value The type of the other Entity
+     * @param entity The other Entity
      */
-    public Relationship(String name, String value) {
+    public Relationship(String name, Entity entity) {
       _name = name;
-      _value = value;
+      _entity = entity;
     }
 
     /**
@@ -37,18 +35,18 @@ public class Relationship {
      * Gets the other Entity type
      * @return Other Entity type
      */
-    public String getValue() {
-        return _value;
+    public Entity getEntity() {
+        return _entity;
     }
 
     /**
-     * Sets the other Entity type
-     * @param value Other Entity type
+     * Sets the other Entity
+     * @param value Other Entity
      */
-    public void setValue(String value) {
-        _value = value;
+    public void setEntity(Entity entity) {
+        _entity = entity;
     }
 
     private String _name;
-    private String _value;
+    private Entity _entity;
 }

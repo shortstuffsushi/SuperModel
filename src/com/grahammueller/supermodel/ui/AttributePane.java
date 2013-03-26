@@ -111,13 +111,9 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
                     // If something goes wrong with the set,
                     // revert to the stored one and report the issue.
                     try {
-                        if (!_storedEntity.updateAttributeName(_storedName, newName)) {
-                            JOptionPane.showMessageDialog(this, "Attribute name already in use.");
-                            _attributeModel.setValueAt(_storedName, selectedRow, 0);
-                        }
-                        else {
-                            MainWindow.updateEntityName(_storedName, newName);
-                        }
+                        _storedEntity.updateAttributeName(_storedName, newName);
+
+                        MainWindow.updateEntityName(_storedName, newName);
                     }
                     catch (IllegalArgumentException iae) {
                         JOptionPane.showMessageDialog(this, iae.getMessage());

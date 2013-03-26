@@ -26,9 +26,8 @@ public class Entity {
         _attributes = new ArrayList<Attribute>();
         _relationships = new ArrayList<Relationship>();
 
-        // Attempt to register, throw exception on failure
-        // which indicates another entity with this name exists
-        if (!EntityManager.registerEntity(this)) { throw new IllegalArgumentException("Unable to register Entity"); }
+        // Attempt to register, which throws exception on failure
+        EntityManager.registerEntity(this);
     }
 
     /**
@@ -45,10 +44,9 @@ public class Entity {
      * 
      * @param name The new name
      * @throws IllegalArgumentException Invalid Entity Name specified
-     * @return Whether set was successful
      */
-    public boolean setName(String name) throws IllegalArgumentException {
-        return EntityManager.updateEntityName(this, name);
+    public void setName(String name) throws IllegalArgumentException {
+        EntityManager.updateEntityName(this, name);
     }
 
     /**
@@ -57,7 +55,6 @@ public class Entity {
      * @param name The attribute name. Follows same naming convention as an Entity.
      * @param type The type of the attribute. Can be any of the Attribute.Type Enum values.
      * @throws IllegalArgumentException Invalid Attribute Name specified
-     * @return Whether the attribute was added
      */
     public void addAttribute(String name, AttributeType type) throws IllegalArgumentException {
         _attributes.add(new Attribute(name, type));
@@ -68,10 +65,9 @@ public class Entity {
      * 
      * @param oldName The desired attribute's name
      * @param newName The new name for that attribute
-     * @throws IllegalArgumentException Invalid Attribute Name specified
-     * @return Whether set was successful
+     * @throws IllegalArgumentException Invalid Attribute name specified, name already in use, or existing Attribute not found.
      */
-    public boolean updateAttributeName(String oldName, String newName) {
+    public void updateAttributeName(String oldName, String newName) {
         Attribute storedAttr = null;
 
         for (Attribute attr : _attributes) {
@@ -82,18 +78,16 @@ public class Entity {
 
             // Attribute name is in use
             if (attr.getName().equals(newName)) {
-                return false;
+                throw new IllegalArgumentException("Attribute name in use");
             }
         }
 
         // No attribute with old name found
         if (storedAttr == null) {
-            return false;
+            throw new IllegalArgumentException("Requested Attribute not found");
         }
 
         storedAttr.setName(newName);
-
-        return true;
     }
 
     /**
@@ -101,10 +95,9 @@ public class Entity {
      * 
      * @param name The desired attribute's name
      * @param type The new type for that attribute
-     * @throws IllegalArgumentException If trying to set a primary key with one previously specified
-     * @return Whether set was successful
+     * @throws IllegalArgumentException Attribute not found, or trying to set a primary key with one previously specified.
      */
-    public boolean updateAttributeType(String name, AttributeType type) {
+    public void updateAttributeType(String name, AttributeType type) {
         Attribute storedAttr = null;
         boolean hasPrimaryKey = false;
 
@@ -121,7 +114,7 @@ public class Entity {
         }
 
         if (storedAttr == null) {
-            return false;
+            throw new IllegalArgumentException("Requested Attribute not found");
         }
 
         if (type == AttributeType.INTEGER_PRIMARY_KEY && hasPrimaryKey) {
@@ -129,8 +122,6 @@ public class Entity {
         }
 
         storedAttr.setType(type);
-
-        return true;
     }
 
     /**
@@ -147,28 +138,27 @@ public class Entity {
      * Method for adding relationships to an Entity
      * 
      * @param name The relationship name. Follows same naming convention as an Entity.
-     * @param type The Entity name of the linked Entity. Can be anything, but when validation
-     *             is run, it will check to see that an Entity with the name exists
-     * @throws IllegalArgumentException Invalid Relationship Name specified
-     * @return Whether the attribute was added
+     * @param entity The other Entity
+     * @throws IllegalArgumentException Invalid Relationship Name specified, or EntityManager doesn't know about Entity
      */
-    public boolean addRelationship(String name, String entity) throws IllegalArgumentException {
+    public void addRelationship(String name, Entity entity) throws IllegalArgumentException {
         EntityManager.validateName(name, "Relationship");
 
-        _relationships.add(new Relationship(name, entity));
+        if (entity == null || !EntityManager.containsEntity(entity)) {
+            throw new IllegalArgumentException("Invalid Entity provided");
+        }
 
-        return true;
+        _relationships.add(new Relationship(name, entity));
     }
 
     /**
-     * Attempts to get and set an attribute's name
+     * Attempts to get and set a Relationship's name
      * 
-     * @param oldName The desired attribute's name
+     * @param oldName The desired Relationship's name
      * @param newName The new name for that attribute
-     * @throws IllegalArgumentException Invalid Attribute Name specified
-     * @return Whether set was successful
+     * @throws IllegalArgumentException Invalid Relationship Name specified, or Relationship not found
      */
-    public boolean updateRelationshipName(String oldName, String newName) {
+    public void updateRelationshipName(String oldName, String newName) {
         Relationship storedRelationship = null;
 
         for (Relationship relationship : _relationships) {
@@ -177,24 +167,53 @@ public class Entity {
                 storedRelationship = relationship;
             }
 
-            // Attribute name is in use
+            // Relationship name is in use
             if (relationship.getName().equals(newName)) {
-                return false;
+                throw new IllegalArgumentException("Relationship name in use");
             }
         }
 
-        // No attribute with old name found
+        // No relationship with old name found
         if (storedRelationship == null) {
-            return false;
+            throw new IllegalArgumentException("Relationship not found");
         }
 
         storedRelationship.setName(newName);
-
-        return true;
     }
 
     /**
-     * Gets the relationships. TODO this should probably be returning a clone/readonly version
+     * Attempts to get and set an Relationship's name
+     * 
+     * @param oldName The desired Relationship's name
+     * @param otherEntity The other Entity
+     * @throws IllegalArgumentException Relationship not found, or invalid Entity
+     */
+    public void updateRelationshipEntity(String oldName, Entity otherEntity) {
+        Relationship storedRelationship = null;
+
+        for (Relationship relationship : _relationships) {
+            // Found stored attribute
+            if (relationship.getName().equals(oldName)) {
+                storedRelationship = relationship;
+            }
+        }
+
+        // No relationship with old name found
+        if (storedRelationship == null) {
+            throw new IllegalArgumentException("Relationship not found");
+        }
+
+        // Entity Manager doesn't know about this Entity
+        if (otherEntity == null || !EntityManager.containsEntity(otherEntity)) {
+            throw new IllegalArgumentException("Invalid Entity provided");
+        }
+
+        storedRelationship.setEntity(otherEntity);
+    }
+
+    /**
+     * Gets the relationships.
+     * TODO this should probably be returning a clone/readonly version
      * 
      * @return The Entity's relationships
      */
@@ -214,7 +233,7 @@ public class Entity {
 
         sb.append("$");
         for (Relationship relationship : _relationships) {
-            sb.append(relationship.getName()).append(':').append(relationship.getValue()).append('#');
+            sb.append(relationship.getName()).append(':').append(relationship.getEntity().getName()).append('#');
         }
 
         return sb.toString();
@@ -225,7 +244,7 @@ public class Entity {
      * 
      * @param entityText The formatted Entity string Should be of form NAME$ATTR1NAME:TYPE#ATTR2NAME:TYPE#
      * @return A new Entity
-     * @throws IllegalArgumentException Improperly named Entity, Attributes, or poorly formatted string
+     * @throws IllegalArgumentException Improperly named Entity, Attributes, Relationships, or poorly formatted string
      */
     public static Entity fromString(String entityText) throws IllegalArgumentException {
         Entity retEnt = null;
@@ -276,7 +295,14 @@ public class Entity {
                 throw new IllegalArgumentException("Relationship malformed");
             }
 
-            retEnt.addRelationship(relPieces[0], relPieces[1]);
+            String otherEntityName = relPieces[1];
+            Entity otherEntity = EntityManager.getEntityByName(otherEntityName);
+
+            if (otherEntity == null) {
+                throw new IllegalArgumentException("Other Entity, \"" + otherEntityName + ",\" doesn't exist");
+            }
+
+            retEnt.addRelationship(relPieces[0], otherEntity);
         }
 
         return retEnt;

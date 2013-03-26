@@ -23,7 +23,6 @@ import javax.swing.table.TableColumn;
 import com.grahammueller.supermodel.entity.Entity;
 import com.grahammueller.supermodel.entity.EntityManager;
 import com.grahammueller.supermodel.entity.EntityManagerListener;
-import com.grahammueller.supermodel.entity.Relationship;
 
 public class RelationshipPane extends JPanel  implements ActionListener, ListSelectionListener, PropertyChangeListener, EntityManagerListener {
     public RelationshipPane(Entity entity) {
@@ -76,8 +75,9 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
     @Override
     public void actionPerformed(ActionEvent e) {
         String newEntityName = "rltn" + relationshipCount++;
-
-        _storedEntity.addRelationship(newEntityName, null);
+        Entity defaultedEntity = EntityManager.getAllEntities().get(0);
+        
+        _storedEntity.addRelationship(newEntityName, defaultedEntity);
 
         _relationshipModel.addRow(new String[] { newEntityName });
     }
@@ -109,13 +109,9 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
                     // If something goes wrong with the set,
                     // revert to the stored one and report the issue.
                     try {
-                        if (!_storedEntity.updateRelationshipName(_storedName, newName)) {
-                            JOptionPane.showMessageDialog(this, "Relationship name already in use.");
-                            _relationshipModel.setValueAt(_storedName, selectedRow, 0);
-                        }
-                        else {
-                            MainWindow.updateEntityName(_storedName, newName);
-                        }
+                        _storedEntity.updateRelationshipName(_storedName, newName);
+
+                        MainWindow.updateEntityName(_storedName, newName);
                     }
                     catch (IllegalArgumentException iae) {
                         JOptionPane.showMessageDialog(this, iae.getMessage());
@@ -137,17 +133,11 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
             String oldName = (String) updates.get("old");
             String newName = (String) updates.get("new");
 
-            for (Relationship relationship : _storedEntity.getRelationships()) {
-                if (relationship.getValue().equals(oldName)) {
-                    relationship.setValue(newName);
-                }
-            }
-
             for (int row = 0; row < _relationshipModel.getRowCount(); row++) {
                 String relationship = (String) _relationshipModel.getValueAt(row, 1);
 
                 if (relationship.equals(oldName)) {
-                    _relationshipModel.setValueAt(newName, row, 0);
+                    _relationshipModel.setValueAt(newName, row, 1);
                 }
             }
         }

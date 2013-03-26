@@ -16,23 +16,37 @@ public class EntityManagerDriver {
 
     @Test
     public void testBasicEntityRegistry() {
-        Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$#");
 
         assertTrue(EntityManager.containsEntity(entity));
     }
 
     @Test
     public void testDuplicateNamesNotAllowed() {
-        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$#");
 
         String failureMessage = null;
         try {
-            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:TRAINER#");
+            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$#");
         }
         catch(IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
-        assertEquals("Unable to register Entity", failureMessage);
+        assertEquals("Entity already registered", failureMessage);
+    }
+
+    @Test
+    public void testContainsWithString() {
+        Entity trainer = Entity.fromString("Trainer$id:INTEGER_PRIMARY_KEY#name:TEXT#$#");
+        Entity pokemon = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:Trainer#");
+
+        assertTrue(EntityManager.containsEntity(trainer.getName()));
+        assertTrue(EntityManager.containsEntity(pokemon.getName()));
+    }
+
+    @Test
+    public void testContainsWithStringGettingNonExistantEntity() {
+        assertFalse(EntityManager.containsEntity("Something"));
     }
 }
