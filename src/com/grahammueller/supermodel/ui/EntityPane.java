@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JButton;
@@ -20,7 +19,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import com.grahammueller.supermodel.entity.Entity;
-import com.grahammueller.supermodel.gen.sqliteorm.ClassGenerator;
 
 public class EntityPane extends JPanel implements ActionListener, ListSelectionListener, PropertyChangeListener {
     public EntityPane() {
@@ -72,9 +70,7 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
     @Override
     public void valueChanged(ListSelectionEvent e) {
         // Adjusting indicates mouse still down
-        if (e.getValueIsAdjusting()) {
-            return;
-        }
+        if (e.getValueIsAdjusting()) { return; }
 
         int selectedRow = _entityTable.getSelectedRow();
 
@@ -103,26 +99,6 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
                 }
             }
         }
-    }
-
-    public void generateCodeFiles(File directory) {
-        try {
-            generateCodeFiles(directory, false);
-        }
-        catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                try {
-                    if (JOptionPane.showConfirmDialog(this, "Overwrite existing files?") == JOptionPane.OK_OPTION) {
-                        generateCodeFiles(directory, true);
-                    }
-                }
-                catch (Exception inner) { }
-            }
-        }
-    }
-
-    private void generateCodeFiles(File directory, boolean override) throws Exception {
-        ClassGenerator.generateEntitiesFiles(directory, override);
     }
 
     private static final long serialVersionUID = 1L;
