@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Map;
@@ -24,7 +26,7 @@ import com.grahammueller.supermodel.entity.Entity;
 import com.grahammueller.supermodel.entity.EntityManager;
 import com.grahammueller.supermodel.entity.EntityManagerListener;
 
-public class RelationshipPane extends JPanel  implements ActionListener, ListSelectionListener, PropertyChangeListener, EntityManagerListener {
+public class RelationshipPane extends JPanel  implements ActionListener, ListSelectionListener, PropertyChangeListener, ItemListener, EntityManagerListener {
     public RelationshipPane(Entity entity) {
         super(new BorderLayout());
 
@@ -64,6 +66,7 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
     private void setEntityList() {
         TableColumn typeColumn = _relationshipTable.getColumnModel().getColumn(1);
         JComboBox comboBox = new JComboBox();
+        comboBox.addItemListener(this);
 
         for (String entityName : EntityManager.nameList()) {
             comboBox.addItem(entityName);
@@ -74,12 +77,16 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String newEntityName = "rltn" + relationshipCount++;
+        String newEntityName = "rltn" + _relationshipCount++;
         Entity defaultedEntity = EntityManager.getAllEntities().get(0);
-        
+
         _storedEntity.addRelationship(newEntityName, defaultedEntity);
 
-        _relationshipModel.addRow(new String[] { newEntityName });
+        _relationshipModel.addRow(new Object[] { newEntityName, defaultedEntity.getName() });
+
+        // Force selection for Combo Box
+        int adjustedIndex = _relationshipCount - 1;
+        _relationshipTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
     }
 
     @Override
@@ -95,12 +102,13 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (e.getPropertyName().equals("tableCellEditor")) {
-            if (_relationshipTable.getSelectedColumn() == 0) {
-                int selectedRow = _relationshipTable.getSelectedRow();
-                if (_relationshipTable.isEditing()) {
-                    _storedName = (String) _relationshipModel.getValueAt(selectedRow, 0);
-                }
-                else {
+            int selectedRow = _relationshipTable.getSelectedRow();
+
+            if (_relationshipTable.isEditing()) {
+                _storedName = (String) _relationshipModel.getValueAt(selectedRow, 0);
+            }
+            else {
+                if (_relationshipTable.getSelectedColumn() == 0) {
                     String newName = (String) _relationshipModel.getValueAt(selectedRow, 0);
 
                     // Nothing to update
@@ -118,7 +126,29 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
                         _relationshipModel.setValueAt(_storedName, selectedRow, 0);
                     }
                 }
+                else if (_relationshipTable.getSelectedColumn() == 1) {
+                    String rltnName = (String) _relationshipModel.getValueAt(selectedRow, 0);
+                    Entity rltnType = EntityManager.getEntityByName((String) _relationshipTable.getValueAt(selectedRow, 1));
+
+                    // Nothing to update
+                    if (rltnType == _storedType) { return; }
+
+                    try {
+                        _storedEntity.updateRelationshipEntity(rltnName, rltnType);
+                    }
+                    catch (IllegalArgumentException iae) {
+                        JOptionPane.showMessageDialog(this, iae.getMessage());
+                        _relationshipModel.setValueAt(_storedType, selectedRow, 1);
+                    }
+                }
             }
+        }
+    }
+
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.DESELECTED) {
+            _storedType = EntityManager.getEntityByName((String) e.getItem());
         }
     }
 
@@ -129,7 +159,7 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
 
     @Override
     public void entityUpdated(Entity e, Map<String, Object> updates) {
-        if ("name".equals(updates.get("name"))) {
+        if (updates.get("name").equals("name")) {
             String oldName = (String) updates.get("old");
             String newName = (String) updates.get("new");
 
@@ -151,11 +181,12 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
     }
 
     private static final long serialVersionUID = 1L;
-    private static int relationshipCount = 0;
 
+    private int _relationshipCount = 0;
     private JScrollPane _relationshipPane;
     private JTable _relationshipTable;
     private DefaultTableModel _relationshipModel;
     private String _storedName;
+    private Entity _storedType;
     private Entity _storedEntity;
 }

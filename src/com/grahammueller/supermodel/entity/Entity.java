@@ -135,6 +135,21 @@ public class Entity {
     }
 
     /**
+     * Gets the primary key Attribute.
+     * 
+     * @return The Entity's primary key Attribute or null
+     */
+    public Attribute getPrimaryKey() {
+        for (Attribute attr : _attributes) {
+            if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
+                return attr;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Method for adding relationships to an Entity
      * 
      * @param name The relationship name. Follows same naming convention as an Entity.
