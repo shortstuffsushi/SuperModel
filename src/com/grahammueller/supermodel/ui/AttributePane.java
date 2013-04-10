@@ -31,7 +31,7 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
 
         _storedEntity = entity;
 
-        _attributeModel = new DefaultTableModel(new String[] { "Attribute", "Type" }, 0);
+        _attributeModel = new AttributePaneModel(new String[] { "Attribute", "Type", "Primary Key" }, 0);
 
         _attributeTable = new JTable();
         _attributeTable.setModel(_attributeModel);
@@ -42,17 +42,6 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
         _attributePane = new JScrollPane();
         _attributePane.setViewportView(_attributeTable);
 
-        JComboBox comboBox = new JComboBox();
-        comboBox.addItem(AttributeType.TEXT);
-        comboBox.addItem(AttributeType.INTEGER_PRIMARY_KEY);
-        comboBox.addItem(AttributeType.NUMERIC);
-        comboBox.addItem(AttributeType.BLOB);
-        comboBox.addItemListener(this);
-
-        // Set the second column to a combo box
-        TableColumn typeColumn = _attributeTable.getColumnModel().getColumn(1);
-        typeColumn.setCellEditor(new DefaultCellEditor(comboBox));
-
         JButton addButton = new JButton("+");
         addButton.addActionListener(this);
         JButton removeButton = new JButton("-");
@@ -60,6 +49,8 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
         buttonPanel.setPreferredSize(new Dimension(400, 40));
         buttonPanel.add(addButton);
         buttonPanel.add(removeButton);
+
+        setupAttributeTypeSelector();
 
         // Add them dummies
         for (int i = 1; i < 8; i++) {
@@ -70,13 +61,30 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    private void setupAttributeTypeSelector() {
+        JComboBox comboBox = new JComboBox();
+        comboBox.addItem(AttributeType.BLOB);
+        comboBox.addItem(AttributeType.BOOLEAN);
+        comboBox.addItem(AttributeType.DATE);
+        comboBox.addItem(AttributeType.DOUBLE);
+        comboBox.addItem(AttributeType.FLOAT);
+        comboBox.addItem(AttributeType.INTEGER);
+        comboBox.addItem(AttributeType.LONG);
+        comboBox.addItem(AttributeType.STRING);
+        comboBox.addItem(AttributeType.UNDEFINED);
+        comboBox.addItemListener(this);
+
+        TableColumn typeColumn = _attributeTable.getColumnModel().getColumn(1);
+        typeColumn.setCellEditor(new DefaultCellEditor(comboBox));
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         String newEntityName = "attr" + _attributeCount++;
 
-        _storedEntity.addAttribute(newEntityName, AttributeType.TEXT);
+        _storedEntity.addAttribute(newEntityName, AttributeType.UNDEFINED);
 
-        _attributeModel.addRow(new Object[] { newEntityName, AttributeType.TEXT });
+        _attributeModel.addRow(new Object[] { newEntityName, AttributeType.UNDEFINED, Boolean.FALSE });
 
         // Force selection for Combo Box
         int adjustedIndex = _attributeCount - 1;
@@ -129,10 +137,26 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
 
                     try {
                         _storedEntity.updateAttributeType(attrName, attrType);
+
+                        if (attrType != AttributeType.INTEGER && attrType != AttributeType.LONG) {
+                            _attributeModel.setValueAt(false, selectedRow, 2);
+                        }
                     }
                     catch (IllegalArgumentException iae) {
                         JOptionPane.showMessageDialog(this, iae.getMessage());
                         _attributeModel.setValueAt(_storedType, selectedRow, 1);
+                    }
+                }
+                else if (_attributeTable.getSelectedColumn() == 2) {
+                    String attrName = (String) _attributeModel.getValueAt(selectedRow, 0);
+                    boolean isPrimaryKey = (Boolean) _attributeModel.getValueAt(selectedRow, 2);
+
+                    try {
+                        _storedEntity.setPrimaryKey(attrName, isPrimaryKey);
+                    }
+                    catch (IllegalArgumentException iae) {
+                        JOptionPane.showMessageDialog(this, iae.getMessage());
+                        _attributeModel.setValueAt(false, selectedRow, 2);
                     }
                 }
             }

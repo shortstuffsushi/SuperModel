@@ -28,6 +28,7 @@ public class TableGenerator {
      * @param pathToDatabase File location of database
      * @param databaseName Name of database to use
      * @throws ExceptionConnection Failure to load JDBC or connect to specified database
+     *         IllegalArgumentException On Attribute with UNDEFINED type
      */
     public static void generateTables(String pathToDatabase, String databaseName) throws ConnectionException {
         connectToDatabase(pathToDatabase, databaseName);
@@ -40,6 +41,7 @@ public class TableGenerator {
      * @param pathToDatabase URL/File path to database
      * @param databaseName Actual database name
      * @throws ExceptionConnection Failure to load JDBC or connect to specified database
+     *         IllegalArgumentException On Attribute with UNDEFINED type
      */
     private static void connectToDatabase(String pathToDatabase, String databaseName) throws ConnectionException {
         try {
@@ -61,8 +63,9 @@ public class TableGenerator {
 
     /**
      * Generates tables for all entities currently managed by the Entity Manager
+     * @throws IllegalArgumentException On Attribute with UNDEFINED type
      */
-    private static void generateTables() {
+    private static void generateTables() throws IllegalArgumentException {
         List<Entity> entities = EntityManager.getAllEntities();
         Map<Entity, StringBuilder> tableBuilders = new HashMap<Entity, StringBuilder>();
 
@@ -83,13 +86,23 @@ public class TableGenerator {
     /**
      * Generates the table for a specific Entity
      * @param entity The Entity whose table will be generated
+     * @throws IllegalArgumentException On Attribute with UNDEFINED type
      */
-    private static StringBuilder createEntityTableBuilder(Entity entity) {
+    private static StringBuilder createEntityTableBuilder(Entity entity) throws IllegalArgumentException {
         StringBuilder tableBuilder = new StringBuilder(String.format(CREATE_TABLE_FORMAT, entity.getName().toLowerCase()));
 
         // Build up attribute strings
         for (Attribute attr : entity.getAttributes()) {
-            tableBuilder.append(String.format(ATTR_COLUMN_DEFN_FORMAT, attr.getName(), attr.getType().toSQLString())).append(",\n");
+            if (attr.getType() == AttributeType.UNDEFINED) {
+                throw new IllegalArgumentException(attr.getName() + " does not have a valid type");
+            }
+
+            if (attr.isPrimaryKey()) {
+                tableBuilder.append(String.format(ATTR_COLUMN_DEFN_FORMAT, attr.getName(), PRIMARY_KEY_DEFN)).append(",\n");
+            }
+            else {
+                tableBuilder.append(String.format(ATTR_COLUMN_DEFN_FORMAT, attr.getName(), attr.getType().toSQLiteString())).append(",\n");
+            }
         }
 
         //Drop last newline and comma, append parenthesis
@@ -110,7 +123,7 @@ public class TableGenerator {
             Attribute primaryKey = entity.getPrimaryKey();
             String mergedNameAndKey = entity.getName().toLowerCase() + primaryKey.getName().substring(0, 1).toUpperCase() + primaryKey.getName().substring(1);
 
-            rltnBuilder.insert(rltnBuilder.length() - 3, ",\n" + String.format(ATTR_COLUMN_DEFN_FORMAT, mergedNameAndKey, AttributeType.NUMERIC.toSQLString()));
+            rltnBuilder.insert(rltnBuilder.length() - 3, ",\n" + String.format(ATTR_COLUMN_DEFN_FORMAT, mergedNameAndKey, primaryKey.getType().toSQLiteString()));
         }
     }
 
@@ -139,6 +152,7 @@ public class TableGenerator {
      private static Connection connection;
 
     // Constants
+    private static final String PRIMARY_KEY_DEFN = "INTEGER PRIMARY KEY AUTOINCREMENT";
     private static final String DROP_TABLE_FORMAT = "drop table if exists %s;\n";
     private static final String CREATE_TABLE_FORMAT = "create table %s (\n";
     private static final String ATTR_COLUMN_DEFN_FORMAT = "  %s %s";

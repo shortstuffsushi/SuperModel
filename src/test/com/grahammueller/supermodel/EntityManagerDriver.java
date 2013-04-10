@@ -16,18 +16,18 @@ public class EntityManagerDriver {
 
     @Test
     public void testBasicEntityRegistry() {
-        Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$#");
+        Entity entity = Entity.fromString("Pokemon$id:INTEGER#name:STRING#type:FLOAT#image:BLOB#$#");
 
         assertTrue(EntityManager.containsEntity(entity));
     }
 
     @Test
     public void testDuplicateNamesNotAllowed() {
-        Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$#");
+        Entity.fromString("Pokemon$id:INTEGER#name:STRING#type:INTEGER#image:BLOB#$#");
 
         String failureMessage = null;
         try {
-            Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$#");
+            Entity.fromString("Pokemon$id:INTEGER#name:STRING#type:INTEGER#image:BLOB#$#");
         }
         catch(IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
@@ -38,8 +38,8 @@ public class EntityManagerDriver {
 
     @Test
     public void testContainsWithString() {
-        Entity trainer = Entity.fromString("Trainer$id:INTEGER_PRIMARY_KEY#name:TEXT#$#");
-        Entity pokemon = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$owner:Trainer#");
+        Entity trainer = Entity.fromString("Trainer$id:INTEGER#name:STRING#$#");
+        Entity pokemon = Entity.fromString("Pokemon$id:INTEGER#name:STRING#type:FLOAT#image:BLOB#$owner:Trainer#");
 
         assertTrue(EntityManager.containsEntity(trainer.getName()));
         assertTrue(EntityManager.containsEntity(pokemon.getName()));

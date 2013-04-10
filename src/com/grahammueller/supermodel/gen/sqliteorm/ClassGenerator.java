@@ -84,7 +84,11 @@ public class ClassGenerator {
         StringBuilder staticMethodBuilder = builders.get("static");
 
         for (Attribute attr : entity.getAttributes()) {
-            if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
+            if (attr.getType() == AttributeType.UNDEFINED) {
+                throw new IllegalArgumentException(attr.getName() + " does not have a valid type");
+            }
+
+            if (attr.isPrimaryKey()) {
                 importBuilder.append(AUTO_INCREMENT_ANNOTATION_IMPORT);
                 importBuilder.append(PRIMARY_KEY_ANNOTATION_IMPORT);
                 fieldBuilder.append(PRIMARY_KEY_ANNOTATION);
@@ -213,11 +217,11 @@ public class ClassGenerator {
     private static final String PRIMARY_KEY_ANNOTATION = "    @AutoIncrement\n    @PrimaryKey\n";
     private static final String ONE_TO_MANY_ANNOTATION_FORMAT = "    @OneToMany(\"%s%s\")\n";
     private static final String LIST_IMPORT = "import java.util.List;\n";
-    private static final String DATA_CONN_EX_IMPORT = "import com.kremerk.Sqlite.DataConnectionException;\n";
-    private static final String SQL_STATEMENT_IMPORT = "import com.kremerk.Sqlite.SqlStatement;\n";
-    private static final String AUTO_INCREMENT_ANNOTATION_IMPORT = "import com.kremerk.Sqlite.Annotations.AutoIncrement;\n";
-    private static final String PRIMARY_KEY_ANNOTATION_IMPORT = "import com.kremerk.Sqlite.Annotations.PrimaryKey;\n";
-    private static final String ONE_TO_MANY_ANNOTATION_IMPORT = "import com.kremerk.Sqlite.Annotations.OneToMany;\n";
+    private static final String DATA_CONN_EX_IMPORT = "import com.njkremer.Sqlite.DataConnectionException;\n";
+    private static final String SQL_STATEMENT_IMPORT = "import com.njkremer.Sqlite.SqlStatement;\n";
+    private static final String AUTO_INCREMENT_ANNOTATION_IMPORT = "import com.njkremer.Sqlite.Annotations.AutoIncrement;\n";
+    private static final String PRIMARY_KEY_ANNOTATION_IMPORT = "import com.njkremer.Sqlite.Annotations.PrimaryKey;\n";
+    private static final String ONE_TO_MANY_ANNOTATION_IMPORT = "import com.njkremer.Sqlite.Annotations.OneToMany;\n";
 
     // Formats
     private static final String CLASS_DECLARATION_FORMAT = "public class %s {\n";

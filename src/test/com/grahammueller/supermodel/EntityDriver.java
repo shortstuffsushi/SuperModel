@@ -116,7 +116,7 @@ public class EntityDriver {
         try {
             Entity e = new Entity("Pokemon");
 
-            e.addAttribute("i*d", AttributeType.INTEGER_PRIMARY_KEY);
+            e.addAttribute("i*d", AttributeType.INTEGER);
         }
         catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
@@ -130,7 +130,7 @@ public class EntityDriver {
         try {
             Entity e = new Entity("Pokemon");
 
-            e.addAttribute("315id", AttributeType.INTEGER_PRIMARY_KEY);
+            e.addAttribute("315id", AttributeType.INTEGER);
         }
         catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
@@ -143,7 +143,7 @@ public class EntityDriver {
     public void testEntityAttributeNormalNameUpdate() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
+        e.addAttribute("id", AttributeType.INTEGER);
         e.updateAttributeName("id", "pkmn_id");
 
         boolean containsId = false;
@@ -168,7 +168,7 @@ public class EntityDriver {
     public void testEntityAttributeNotFoundNameUpdate() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
+        e.addAttribute("id", AttributeType.INTEGER);
 
         try {
             e.updateAttributeName("pkmn_id", "pkmnId");
@@ -184,8 +184,8 @@ public class EntityDriver {
     public void testEntityAttributeNameInUseNameUpdate() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
-        e.addAttribute("pkmn_id", AttributeType.NUMERIC);
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.addAttribute("pkmn_id", AttributeType.INTEGER);
 
         try {
             e.updateAttributeName("id", "pkmn_id");
@@ -201,36 +201,36 @@ public class EntityDriver {
     public void testEntityAttributeNormalTypeUpdate() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
-        e.updateAttributeType("id", AttributeType.NUMERIC);
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.updateAttributeType("id", AttributeType.FLOAT);
 
-        boolean containsIdAsPK = false;
-        boolean containsIdAsNumeric = false;
+        boolean containsIdAsInteger = false;
+        boolean containsIdAsFloat = false;
         List<Attribute> attributes = e.getAttributes();
         for (Attribute attr : attributes) {
             if (attr.getName().equals("id")) {
-                if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
-                    containsIdAsPK = true;
+                if (attr.getType() == AttributeType.INTEGER) {
+                    containsIdAsInteger = true;
                 }
-                else if (attr.getType() == AttributeType.NUMERIC) {
-                    containsIdAsNumeric = true;
+                else if (attr.getType() == AttributeType.FLOAT) {
+                    containsIdAsFloat = true;
                 }
             }
         }
 
         assertEquals(1, attributes.size());
-        assertTrue(containsIdAsNumeric);
-        assertFalse(containsIdAsPK);
+        assertTrue(containsIdAsFloat);
+        assertFalse(containsIdAsInteger);
     }
 
     @Test
     public void testEntityAttributeNotFoundTypeUpdate() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
+        e.addAttribute("id", AttributeType.INTEGER);
 
         try {
-            e.updateAttributeType("pkmn_id", AttributeType.NUMERIC);
+            e.updateAttributeType("pkmn_id", AttributeType.INTEGER);
         }
         catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
@@ -240,46 +240,85 @@ public class EntityDriver {
     }
 
     @Test
-    public void testEntityAttributeNormalPKTypeUpdate() {
+    public void testEntityAttributeNormalPKSet() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.NUMERIC);
-        e.updateAttributeType("id", AttributeType.INTEGER_PRIMARY_KEY);
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
-        boolean containsIdAsPK = false;
-        boolean containsIdAsNumeric = false;
         List<Attribute> attributes = e.getAttributes();
+        assertEquals(1, attributes.size());
+
         for (Attribute attr : attributes) {
             if (attr.getName().equals("id")) {
-                if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
-                    containsIdAsPK = true;
-                }
-                else if (attr.getType() == AttributeType.NUMERIC) {
-                    containsIdAsNumeric = true;
-                }
+                assertTrue(attr.isPrimaryKey());
             }
         }
-
-        assertEquals(1, attributes.size());
-        assertFalse(containsIdAsNumeric);
-        assertTrue(containsIdAsPK);
     }
 
     @Test
-    public void testEntityAttributeAlreadyHasPKTypeUpdate() {
+    public void testEntityAttributeAlreadyHasPKSet() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
-        e.addAttribute("pkmn_id", AttributeType.NUMERIC);
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
+
+        e.addAttribute("pkmn_id", AttributeType.INTEGER);
 
         try {
-            e.updateAttributeType("pkmn_id", AttributeType.INTEGER_PRIMARY_KEY);
+            e.setPrimaryKey("pkmn_id", true);
         }
         catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
-        assertEquals("Already has primary key", failureMessage);
+        assertEquals("Already has a primary key", failureMessage);
+    }
+
+    @Test
+    public void testEntityAttributeNotFoundPKSet() {
+        Entity e = new Entity("Pokemon");
+
+        try {
+            e.setPrimaryKey("id", true);
+        }
+        catch (IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Requested Attribute not found", failureMessage);
+    }
+
+    @Test
+    public void testEntityAttributeInvalidTypeForPKSet() {
+        Entity e = new Entity("Pokemon");
+
+        e.addAttribute("id", AttributeType.FLOAT);
+        try {
+            e.setPrimaryKey("id", true);
+        }
+        catch (IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Specified Attribute Type cannot be Primary Key", failureMessage);
+    }
+
+    @Test
+    public void testEntityAttributeTypeChangeNoLongerValidForPKSet() {
+        Entity e = new Entity("Pokemon");
+
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
+        e.updateAttributeType("id", AttributeType.STRING);
+
+        for (Attribute attr : e.getAttributes()) {
+            if (attr.getName().equals("id")) {
+                assertFalse(attr.isPrimaryKey());
+                assertFalse(attr.getType() == AttributeType.INTEGER);
+                assertTrue(attr.getType() == AttributeType.STRING);
+            }
+        }
     }
 
     //////////////////
@@ -524,10 +563,20 @@ public class EntityDriver {
     public void testEntityToStringWithAttributes() {
         Entity e = new Entity("Pokemon");
 
-        e.addAttribute("id", AttributeType.INTEGER_PRIMARY_KEY);
-        e.addAttribute("name", AttributeType.TEXT);
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.addAttribute("name", AttributeType.STRING);
 
-        assertEquals("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#$", e.toString());
+        assertEquals("Pokemon$id:INTEGER#name:STRING#$", e.toString());
+    }
+
+    @Test
+    public void testEntityToStringWithPrimaryKey() {
+        Entity e = new Entity("Pokemon");
+
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
+
+        assertEquals("Pokemon$id:INTEGER_PRIMARY_KEY#$", e.toString());
     }
 
     @Test
@@ -577,7 +626,7 @@ public class EntityDriver {
 
     @Test
     public void testEntityFromStringWithAttributes() {
-        Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:TEXT#type:NUMERIC#image:BLOB#$");
+        Entity entity = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#name:STRING#type:INTEGER#image:BLOB#$");
 
         List<Attribute> attributes = entity.getAttributes();
         assertEquals(4, attributes.size());
@@ -588,18 +637,19 @@ public class EntityDriver {
         assertTrue(attributes.get(3).getName().equals("image"));
 
         assertEquals(0, entity.getRelationships().size());
+        assertNotNull(entity.getPrimaryKey());
     }
 
     @Test
     public void testEntityFromStringWithInvalidAttributes() {
         try {
-            Entity.fromString("Pokemon$id:INTEGER#$");
+            Entity.fromString("Pokemon$id:LONG_LONG#$");
         }
         catch (IllegalArgumentException iae) {
             failureMessage = iae.getMessage();
         }
 
-        assertEquals("No enum const class com.grahammueller.supermodel.entity.AttributeType.INTEGER", failureMessage);
+        assertEquals("No enum const class com.grahammueller.supermodel.entity.AttributeType.LONG_LONG", failureMessage);
     }
 
     @Test

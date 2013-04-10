@@ -69,7 +69,6 @@ public class Entity {
      */
     public void updateAttributeName(String oldName, String newName) {
         Attribute storedAttr = null;
-
         for (Attribute attr : _attributes) {
             // Found stored attribute
             if (attr.getName().equals(oldName)) {
@@ -98,30 +97,58 @@ public class Entity {
      * @throws IllegalArgumentException Attribute not found, or trying to set a primary key with one previously specified.
      */
     public void updateAttributeType(String name, AttributeType type) {
-        Attribute storedAttr = null;
-        boolean hasPrimaryKey = false;
-
         for (Attribute attr : _attributes) {
             // Found stored attribute
             if (attr.getName().equals(name)) {
-                storedAttr = attr;
+                attr.setType(type);
+
+                // Force clear Primary Key if it is no longer applicable
+                if (attr.getType() != AttributeType.INTEGER && attr.getType() != AttributeType.LONG) {
+                    attr.setPrimaryKey(false);
+                }
+
+                return;
             }
+        }
 
-            // Already has an Integer Primary Key
-            if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
-                hasPrimaryKey = true;
+        throw new IllegalArgumentException("Requested Attribute not found");
+    }
+
+    /**
+     * Gets the primary key Attribute.
+     * 
+     * @return The Entity's primary key Attribute or null
+     */
+    public Attribute getPrimaryKey() {
+        for (Attribute attr : _attributes) {
+            if (attr.isPrimaryKey()) {
+                return attr;
             }
         }
 
-        if (storedAttr == null) {
-            throw new IllegalArgumentException("Requested Attribute not found");
+        return null;
+    }
+
+    /**
+     * Attempts to update an Attribute's Primary Key status
+     * 
+     * @param name The Attribute to update.
+     * @param isPrimaryKey Whether the Attribute should be the Primary Key
+     * @throws IllegalArgumentException Primary Key already exists, or Specified Attribute could not be found
+     */
+    public void setPrimaryKey(String name, boolean isPrimaryKey) throws IllegalArgumentException {
+        if (getPrimaryKey() != null && isPrimaryKey) {
+            throw new IllegalArgumentException("Already has a primary key");
         }
 
-        if (type == AttributeType.INTEGER_PRIMARY_KEY && hasPrimaryKey) {
-            throw new IllegalArgumentException("Already has primary key");
+        for (Attribute attr : _attributes) {
+            if (attr.getName().equals(name)) {
+                attr.setPrimaryKey(isPrimaryKey);
+                return;
+            }
         }
 
-        storedAttr.setType(type);
+        throw new IllegalArgumentException("Requested Attribute not found");
     }
 
     /**
@@ -132,21 +159,6 @@ public class Entity {
      */
     public List<Attribute> getAttributes() {
         return _attributes;
-    }
-
-    /**
-     * Gets the primary key Attribute.
-     * 
-     * @return The Entity's primary key Attribute or null
-     */
-    public Attribute getPrimaryKey() {
-        for (Attribute attr : _attributes) {
-            if (attr.getType() == AttributeType.INTEGER_PRIMARY_KEY) {
-                return attr;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -204,26 +216,20 @@ public class Entity {
      * @throws IllegalArgumentException Relationship not found, or invalid Entity
      */
     public void updateRelationshipEntity(String oldName, Entity otherEntity) {
-        Relationship storedRelationship = null;
-
         for (Relationship relationship : _relationships) {
             // Found stored attribute
             if (relationship.getName().equals(oldName)) {
-                storedRelationship = relationship;
+                if (!EntityManager.containsEntity(otherEntity)) {
+                    throw new IllegalArgumentException("Invalid Entity provided");
+                }
+
+                relationship.setEntity(otherEntity);
+                return;
             }
         }
 
         // No relationship with old name found
-        if (storedRelationship == null) {
-            throw new IllegalArgumentException("Relationship not found");
-        }
-
-        // Entity Manager doesn't know about this Entity
-        if (otherEntity == null || !EntityManager.containsEntity(otherEntity)) {
-            throw new IllegalArgumentException("Invalid Entity provided");
-        }
-
-        storedRelationship.setEntity(otherEntity);
+        throw new IllegalArgumentException("Relationship not found");
     }
 
     /**
@@ -243,12 +249,19 @@ public class Entity {
         StringBuilder sb = new StringBuilder(_name).append('$');
 
         for (Attribute attribute : _attributes) {
-            sb.append(attribute.getName()).append(':').append(attribute.getType().name()).append('#');
+            sb.append(attribute.getName())
+              .append(':')
+              .append(attribute.getType().name())
+              .append(attribute.isPrimaryKey() ? "_PRIMARY_KEY" : "")
+              .append('#');
         }
 
         sb.append("$");
         for (Relationship relationship : _relationships) {
-            sb.append(relationship.getName()).append(':').append(relationship.getEntity().getName()).append('#');
+            sb.append(relationship.getName())
+              .append(':')
+              .append(relationship.getEntity().getName())
+              .append('#');
         }
 
         return sb.toString();
@@ -291,7 +304,13 @@ public class Entity {
                 throw new IllegalArgumentException("Attribute malformed");
             }
 
+            boolean isPrimaryKey = attrPieces[1].contains("_PRIMARY_KEY");
+            if (isPrimaryKey) {
+                attrPieces[1] = attrPieces[1].replace("_PRIMARY_KEY", "");
+            }
+
             retEnt.addAttribute(attrPieces[0], AttributeType.valueOf(attrPieces[1]));
+            retEnt.setPrimaryKey(attrPieces[0], isPrimaryKey);
         }
 
         for (String relationship : relationships) {

@@ -1,21 +1,11 @@
 package com.grahammueller.supermodel.entity;
 
 /**
- * This enum represents the SQLite data types
- * that an attribute can be mapped to.
+ * This enum represents the available data
+ * types that an Attribute can be mapped to.
  */
 public enum AttributeType {
-    INTEGER_PRIMARY_KEY, NUMERIC, TEXT, BLOB; 
-
-    /**
-     * Gets the string version of the type,
-     * replacing underscore with space
-     * 
-     * @return This, in string form
-     */
-    public String toString() {
-        return name().replace('_', ' ');
-    }
+    BLOB, BOOLEAN, DATE, DOUBLE, FLOAT, INTEGER, LONG, STRING, UNDEFINED;
 
     /**
      * Gets the string for the Java class
@@ -24,25 +14,31 @@ public enum AttributeType {
      */
     public String toJavaString() {
         switch (this) {
-            case INTEGER_PRIMARY_KEY : return "long";
-            case NUMERIC : return "double";
-            case TEXT :
+            case BOOLEAN : return "boolean";
             case BLOB : return "String";
+            case DATE : return "Date";
+            case DOUBLE : return "double";
+            case FLOAT : return "float";
+            case INTEGER : return "int";
+            case LONG : return "long";
+            case STRING : return "String";
             default : return "";
         }
     }
 
     /**
-     * Gets the string for the SQL column definition
-     * @return This, in SQL column definition form
+     * Gets the string for the SQLite column definition
+     * @return This, in SQLite column definition form
      */
-    public String toSQLString() {
+    public String toSQLiteString() {
         switch (this) {
-            case INTEGER_PRIMARY_KEY : return "INTEGER PRIMARY KEY AUTOINCREMENT";
-            case NUMERIC :
-            case TEXT :
+            case BOOLEAN : case DOUBLE :case FLOAT : case INTEGER : case LONG :
+                return "NUMERIC";
+            case DATE : case STRING :
+                return "TEXT";
             case BLOB :
-            default : return toString();
+                return "BLOB";
+            default : return "";
         }
     }
 }
