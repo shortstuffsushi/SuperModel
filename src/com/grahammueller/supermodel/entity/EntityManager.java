@@ -28,8 +28,45 @@ public class EntityManager {
 
         _entities.add(e);
 
-        for (EntityManagerListener listener : _listeners) {
+        // Copy list so we new items can register while we're notifying
+        EntityManagerListener[] listeners = _listeners.toArray(new EntityManagerListener[_listeners.size()]);
+        for (EntityManagerListener listener : listeners) {
             listener.entityAdded(e);
+        }
+    }
+
+    /**
+     * Removes an Entity from the manager. All corresponding Relationships
+     * to removed Entity will also be removed. Notifications are sent to subscribers.
+     * 
+     * @param e The Entity to remove
+     * @throws IllegalArgumentException Entity is not currently managed
+     */
+    public static void removeEntity(Entity e) throws IllegalArgumentException {
+        if (!containsEntity(e)) {
+            throw new IllegalArgumentException("Entity not currently managed");
+        }
+
+        for (Entity entity : _entities) {
+            List<Relationship> toRemove = new ArrayList<Relationship>();
+
+            // Get all the Relationships to remove
+            for (Relationship rltn : entity.getRelationships()) {
+                if (rltn.getEntity().equals(e)) {
+                    toRemove.add(rltn);
+                }
+            }
+
+            // Actually remove Relationships
+            for (Relationship rltn : toRemove) {
+                entity.removeRelationship(rltn.getName());
+            }
+        }
+
+        _entities.remove(e);
+
+        for (EntityManagerListener listener : _listeners) {
+            listener.entityRemoved(e);
         }
     }
 
@@ -39,7 +76,7 @@ public class EntityManager {
      * @param name The new name
      * @throws IllegalArgumentException Invalid Entity Name specified, or name already in use
      */
-    protected static void updateEntityName(Entity e, String newName) {
+    protected static void updateEntityName(Entity e, String newName) throws IllegalArgumentException {
         if (containsEntity(newName)) {
             throw new IllegalArgumentException("Entity name already in use");
         }

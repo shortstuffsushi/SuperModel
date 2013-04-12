@@ -549,6 +549,33 @@ public class EntityDriver {
         assertEquals("Invalid Entity provided", failureMessage);
     }
 
+    @Test
+    public void testEntityRelationshipRemove() {
+        Entity pkmn = new Entity("Pokemon");
+        Entity trainer = new Entity("Trainer");
+
+        pkmn.addRelationship("owner", pkmn);
+
+        pkmn.removeRelationship("owner");
+
+        assertEquals(0, pkmn.getRelationships().size());
+    }
+
+    @Test
+    public void testEntityRemoveRelationshipNotFound() {
+        Entity pkmn = new Entity("Pokemon");
+
+        try {
+            pkmn.removeRelationship("owner");
+        }
+        catch (IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals(0, pkmn.getRelationships().size());
+        assertEquals("Relationship not found", failureMessage);
+    }
+
     ////////////////////
     // Lang Overrides //
     ////////////////////

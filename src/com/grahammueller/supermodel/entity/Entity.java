@@ -233,6 +233,25 @@ public class Entity {
     }
 
     /**
+     * Attempts to remove a Relationship by name
+     * 
+     * @param name RelationshipName
+     * @throws IllegalArgumentException Relationship not found
+     */
+    public void removeRelationship(String name) {
+        for (Relationship rltn : _relationships) {
+            // Found stored attribute
+            if (rltn.getName().equals(name)) {
+                _relationships.remove(rltn);
+                return;
+            }
+        }
+
+        // No relationship with name found
+        throw new IllegalArgumentException("Relationship not found");
+    }
+
+    /**
      * Gets the relationships.
      * TODO this should probably be returning a clone/readonly version
      * 

@@ -17,14 +17,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import com.grahammueller.supermodel.entity.AttributeType;
 import com.grahammueller.supermodel.entity.Entity;
 
-public class AttributePane extends JPanel  implements ActionListener, ListSelectionListener, PropertyChangeListener, ItemListener {
+public class AttributePane extends JPanel  implements ActionListener, PropertyChangeListener, ItemListener {
     public AttributePane(Entity entity) {
         super(new BorderLayout());
         setPreferredSize(new Dimension(400, 190));
@@ -36,7 +34,6 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
         _attributeTable = new JTable();
         _attributeTable.setModel(_attributeModel);
         _attributeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        _attributeTable.getSelectionModel().addListSelectionListener(this);
         _attributeTable.addPropertyChangeListener(this);
 
         _attributePane = new JScrollPane();
@@ -87,18 +84,8 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
         _attributeModel.addRow(new Object[] { newEntityName, AttributeType.UNDEFINED, Boolean.FALSE });
 
         // Force selection for Combo Box
-        int adjustedIndex = _attributeCount - 1;
+        int adjustedIndex = _attributeModel.getRowCount() - 1;
         _attributeTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
-    }
-
-    @Override
-    public void valueChanged(ListSelectionEvent e) {
-        // Adjusting indicates mouse still down
-        if (e.getValueIsAdjusting()) { return; }
-
-        int selectedRow = _attributeTable.getSelectedRow();
-
-        MainWindow.setSelectedEntityBodyPane((String) _attributeModel.getValueAt(selectedRow, 0));
     }
 
     @Override
@@ -120,8 +107,6 @@ public class AttributePane extends JPanel  implements ActionListener, ListSelect
                     // revert to the stored one and report the issue.
                     try {
                         _storedEntity.updateAttributeName(_storedName, newName);
-
-                        MainWindow.updateEntityName(_storedName, newName);
                     }
                     catch (IllegalArgumentException iae) {
                         JOptionPane.showMessageDialog(this, iae.getMessage());

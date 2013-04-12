@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import com.grahammueller.supermodel.entity.Entity;
+import com.grahammueller.supermodel.entity.EntityManager;
 
 public class EntityPane extends JPanel implements ActionListener, ListSelectionListener, PropertyChangeListener {
     public EntityPane() {
@@ -38,13 +39,14 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
         _entityTable.addPropertyChangeListener(this);
         _entityScrollPane.setViewportView(_entityTable);
 
-        JButton addButton = new JButton("+");
-        addButton.addActionListener(this);
-        JButton removeButton = new JButton("-");
+        _addButton = new JButton("+");
+        _addButton.addActionListener(this);
+        _removeButton = new JButton("-");
+        _removeButton.addActionListener(this);
         JPanel buttonPanel = new JPanel(new GridLayout(1, 5));
         buttonPanel.setPreferredSize(new Dimension(200, 40));
-        buttonPanel.add(addButton);
-        buttonPanel.add(removeButton);
+        buttonPanel.add(_addButton);
+        buttonPanel.add(_removeButton);
 
         // Add them dummies
         for (int i = 1; i < 3; i++) {
@@ -57,14 +59,36 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String newEntityName = "NewEntity" + _entityCount++;
+        if (e.getSource().equals(_addButton)) {
+            String newEntityName = "NewEntity" + _entityCount++;
 
-        Entity newEntity = new Entity(newEntityName);
-        _entities.add(newEntity);
+            Entity newEntity = new Entity(newEntityName);
+            _entities.add(newEntity);
 
-        _entityModel.addRow(new String[] { newEntityName });
+            _entityModel.addRow(new String[] { newEntityName });
+        }
+        else if (e.getSource().equals(_removeButton)) {
+            // If there are not currently any Entities,
+            // then we've nothing to remove.
+            if (_entityModel.getRowCount() == 0) {
+                return;
+            }
 
-        MainWindow.addNewEntityBodyPane(newEntity);
+            int selectedRow = _entityTable.getSelectedRow();
+            Entity entity = _entities.get(selectedRow);
+
+            if (JOptionPane.showConfirmDialog(this, "Remove " + entity.getName() + "?") == JOptionPane.OK_OPTION) {
+                EntityManager.removeEntity(entity);
+
+                _entities.remove(entity);
+                _entityModel.removeRow(selectedRow);
+
+                if (_entities.size() > 0) {
+                    int newSelection = selectedRow == 0 ? 0 : selectedRow - 1;
+                    _entityTable.setRowSelectionInterval(newSelection, newSelection);
+                }
+            }
+        }
     }
 
     @Override
@@ -73,6 +97,16 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
         if (e.getValueIsAdjusting()) { return; }
 
         int selectedRow = _entityTable.getSelectedRow();
+
+        // Fix selection
+        if (selectedRow == -1) {
+            // If there aren't any Entities, don't select
+            if (_entities.size() == 0) {
+                return;
+            }
+
+            selectedRow = 0;
+        }
 
         MainWindow.setSelectedEntityBodyPane((String) _entityModel.getValueAt(selectedRow, 0));
     }
@@ -91,7 +125,6 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
                 // revert to the stored one and report the issue.
                 try {
                     _entities.get(selectedRow).setName(newName);
-                    MainWindow.updateEntityName(_storedName, newName);
                 }
                 catch (IllegalArgumentException iae) {
                     JOptionPane.showMessageDialog(this, iae.getMessage());
@@ -107,6 +140,8 @@ public class EntityPane extends JPanel implements ActionListener, ListSelectionL
     private DefaultTableModel _entityModel;
     private JScrollPane _entityScrollPane;
     private JTable _entityTable;
+    private JButton _addButton;
+    private JButton _removeButton;
     private String _storedName;
     private List<Entity> _entities;
 }

@@ -9,6 +9,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
 import java.util.Map;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -18,15 +19,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import com.grahammueller.supermodel.entity.Entity;
 import com.grahammueller.supermodel.entity.EntityManager;
 import com.grahammueller.supermodel.entity.EntityManagerListener;
+import com.grahammueller.supermodel.entity.Relationship;
 
-public class RelationshipPane extends JPanel  implements ActionListener, ListSelectionListener, PropertyChangeListener, ItemListener, EntityManagerListener {
+public class RelationshipPane extends JPanel  implements ActionListener, PropertyChangeListener, ItemListener, EntityManagerListener {
     public RelationshipPane(Entity entity) {
         super(new BorderLayout());
 
@@ -40,7 +40,6 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
         _relationshipModel = new DefaultTableModel(new String[] { "Relationship", "Destination Class" }, 0);
         _relationshipTable.setModel(_relationshipModel);
         _relationshipTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        _relationshipTable.getSelectionModel().addListSelectionListener(this);
         _relationshipTable.addPropertyChangeListener(this);
         _relationshipPane.setViewportView(_relationshipTable);
 
@@ -85,18 +84,8 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
         _relationshipModel.addRow(new Object[] { newEntityName, defaultedEntity.getName() });
 
         // Force selection for Combo Box
-        int adjustedIndex = _relationshipCount - 1;
+        int adjustedIndex = _relationshipModel.getRowCount() - 1;
         _relationshipTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
-    }
-
-    @Override
-    public void valueChanged(ListSelectionEvent e) {
-        // Adjusting indicates mouse still down
-        if (e.getValueIsAdjusting()) { return; }
-
-        int selectedRow = _relationshipTable.getSelectedRow();
-
-        MainWindow.setSelectedEntityBodyPane((String) _relationshipModel.getValueAt(selectedRow, 0));
     }
 
     @Override
@@ -118,8 +107,6 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
                     // revert to the stored one and report the issue.
                     try {
                         _storedEntity.updateRelationshipName(_storedName, newName);
-
-                        MainWindow.updateEntityName(_storedName, newName);
                     }
                     catch (IllegalArgumentException iae) {
                         JOptionPane.showMessageDialog(this, iae.getMessage());
@@ -177,6 +164,20 @@ public class RelationshipPane extends JPanel  implements ActionListener, ListSel
 
     @Override
     public void entityRemoved(Entity e) {
+        // Check for discrepancies indicating one of our Relationships was removed
+        List<Relationship> relationships = _storedEntity.getRelationships();
+        if (_relationshipModel.getRowCount() != relationships.size()) {
+            // Reset our table model with the remaining Relationships
+            _relationshipModel = new DefaultTableModel(new String[] { "Relationship", "Destination Class" }, 0);
+
+            for (Relationship rltn : relationships) {
+               _relationshipModel.addRow(new Object[] { rltn.getName(), rltn.getEntity().getName() });
+            }
+
+            _relationshipTable.setModel(_relationshipModel);
+        }
+
+        // Update combo box
         setEntityList();
     }
 

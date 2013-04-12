@@ -49,4 +49,24 @@ public class EntityManagerDriver {
     public void testContainsWithStringGettingNonExistantEntity() {
         assertFalse(EntityManager.containsEntity("Something"));
     }
+
+    @Test
+    public void testBasicRemoveEntity() {
+        Entity trainer = Entity.fromString("Trainer$id:INTEGER#name:STRING#$#");
+
+        EntityManager.removeEntity(trainer);
+
+        assertEquals(0, EntityManager.getAllEntities().size());
+    }
+
+    @Test
+    public void testBasicRemoveEntityThatRelationshipsPointTo() {
+        Entity trainer = Entity.fromString("Trainer$id:INTEGER#name:STRING#$#");
+        Entity pokemon = Entity.fromString("Pokemon$id:INTEGER#name:STRING#type:FLOAT#image:BLOB#$owner:Trainer#");
+
+        EntityManager.removeEntity(trainer);
+
+        assertEquals(1, EntityManager.getAllEntities().size());
+        assertEquals(0, pokemon.getRelationships().size());
+    }
 }
