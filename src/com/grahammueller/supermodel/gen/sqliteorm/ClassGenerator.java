@@ -85,7 +85,7 @@ public class ClassGenerator {
 
         for (Attribute attr : entity.getAttributes()) {
             if (attr.getType() == AttributeType.UNDEFINED) {
-                throw new IllegalArgumentException(attr.getName() + " does not have a valid type");
+                throw new IllegalStateException(attr.getName() + " does not have a valid type");
             }
 
             if (attr.isPrimaryKey()) {

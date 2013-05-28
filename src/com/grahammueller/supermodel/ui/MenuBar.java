@@ -65,6 +65,11 @@ public class MenuBar extends JMenuBar implements ActionListener {
             ClassGenerator.generateEntitiesFiles(directory, false);
         }
         catch (Exception e) {
+            if (e instanceof IllegalStateException) {
+                JOptionPane.showMessageDialog(this, e.getMessage());
+                return;
+            }
+
             if (e instanceof IllegalArgumentException) {
                 try {
                     if (JOptionPane.showConfirmDialog(this, "Overwrite existing files?") == JOptionPane.OK_OPTION) {
