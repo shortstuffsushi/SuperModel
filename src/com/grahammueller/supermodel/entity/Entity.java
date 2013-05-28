@@ -1,6 +1,7 @@
 package com.grahammueller.supermodel.entity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -152,13 +153,37 @@ public class Entity {
     }
 
     /**
+     * Attempts to remove an Attribute by name
+     * 
+     * @param name Attribute Name
+     * @throws IllegalArgumentException Attribute not found
+     */
+    public void removeAttribute(String name) {
+        for (Attribute attr : _attributes) {
+            // Found stored Attribute
+            if (attr.getName().equals(name)) {
+                if (attr.isPrimaryKey()) {
+                    _relationships.clear();
+                    EntityManager.entityClearedRelationships(this);
+                }
+
+                _attributes.remove(attr);
+
+                return;
+            }
+        }
+
+        // No Attribute with name found
+        throw new IllegalArgumentException("Attribute not found");
+    }
+
+    /**
      * Gets the attributes.
-     * TODO this should probably be returning a clone/readonly version
      * 
      * @return The Entity's attributes
      */
     public List<Attribute> getAttributes() {
-        return _attributes;
+        return Collections.unmodifiableList(_attributes);
     }
 
     /**
@@ -166,9 +191,13 @@ public class Entity {
      * 
      * @param name The relationship name. Follows same naming convention as an Entity.
      * @param entity The other Entity
-     * @throws IllegalArgumentException Invalid Relationship Name specified, or EntityManager doesn't know about Entity
+     * @throws IllegalArgumentException No Primary Key, Invalid Relationship Name specified, or EntityManager doesn't know about Entity
      */
     public void addRelationship(String name, Entity entity) throws IllegalArgumentException {
+        if (getPrimaryKey() == null) {
+            throw new IllegalArgumentException("Must have a primary key Attribute to add Relationships");
+        }
+
         EntityManager.validateName(name, "Relationship");
 
         if (entity == null || !EntityManager.containsEntity(entity)) {
@@ -240,25 +269,24 @@ public class Entity {
      */
     public void removeRelationship(String name) {
         for (Relationship rltn : _relationships) {
-            // Found stored attribute
+            // Found stored Relationship
             if (rltn.getName().equals(name)) {
                 _relationships.remove(rltn);
                 return;
             }
         }
 
-        // No relationship with name found
+        // No Relationship with name found
         throw new IllegalArgumentException("Relationship not found");
     }
 
     /**
      * Gets the relationships.
-     * TODO this should probably be returning a clone/readonly version
      * 
      * @return The Entity's relationships
      */
     public List<Relationship> getRelationships() {
-        return _relationships;
+        return Collections.unmodifiableList(_relationships);
     }
 
     /**

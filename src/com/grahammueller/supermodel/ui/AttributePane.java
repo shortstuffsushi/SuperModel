@@ -19,6 +19,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import com.grahammueller.supermodel.entity.Attribute;
 import com.grahammueller.supermodel.entity.AttributeType;
 import com.grahammueller.supermodel.entity.Entity;
 
@@ -39,13 +40,14 @@ public class AttributePane extends JPanel  implements ActionListener, PropertyCh
         _attributePane = new JScrollPane();
         _attributePane.setViewportView(_attributeTable);
 
-        JButton addButton = new JButton("+");
-        addButton.addActionListener(this);
-        JButton removeButton = new JButton("-");
+        _addButton = new JButton("+");
+        _addButton.addActionListener(this);
+        _removeButton = new JButton("-");
+        _removeButton.addActionListener(this);
         JPanel buttonPanel = new JPanel(new GridLayout(1, 10));
         buttonPanel.setPreferredSize(new Dimension(400, 40));
-        buttonPanel.add(addButton);
-        buttonPanel.add(removeButton);
+        buttonPanel.add(_addButton);
+        buttonPanel.add(_removeButton);
 
         setupAttributeTypeSelector();
 
@@ -77,15 +79,38 @@ public class AttributePane extends JPanel  implements ActionListener, PropertyCh
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String newEntityName = "attr" + _attributeCount++;
+        if (e.getSource().equals(_addButton)) {
+            String newEntityName = "attr" + _attributeCount++;
 
-        _storedEntity.addAttribute(newEntityName, AttributeType.UNDEFINED);
+            _storedEntity.addAttribute(newEntityName, AttributeType.UNDEFINED);
 
-        _attributeModel.addRow(new Object[] { newEntityName, AttributeType.UNDEFINED, Boolean.FALSE });
+            _attributeModel.addRow(new Object[] { newEntityName, AttributeType.UNDEFINED, Boolean.FALSE });
 
-        // Force selection for Combo Box
-        int adjustedIndex = _attributeModel.getRowCount() - 1;
-        _attributeTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
+            // Force selection for Combo Box
+            int adjustedIndex = _attributeModel.getRowCount() - 1;
+            _attributeTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
+        }
+        else if (e.getSource().equals(_removeButton)) {
+            // If there are not currently any Attributes,
+            // then we've nothing to remove.
+            if (_attributeModel.getRowCount() == 0) {
+                return;
+            }
+
+            int selectedRow = _attributeTable.getSelectedRow();
+            Attribute attr = _storedEntity.getAttributes().get(selectedRow);
+
+            String warningMessage = String.format("Remove %s?%s", attr.getName(), attr.isPrimaryKey() ? "\n(Note: Removing the PK will result in all Relationships being dropped)" : "");
+            if (JOptionPane.showConfirmDialog(this, warningMessage) == JOptionPane.OK_OPTION) {
+                _storedEntity.removeAttribute(attr.getName());
+                _attributeModel.removeRow(selectedRow);
+
+                if (_attributeModel.getRowCount() > 0) {
+                    int newSelection = selectedRow == 0 ? 0 : selectedRow - 1;
+                    _attributeTable.setRowSelectionInterval(newSelection, newSelection);
+                }
+            }
+        }
     }
 
     @Override
@@ -158,6 +183,8 @@ public class AttributePane extends JPanel  implements ActionListener, PropertyCh
     private static final long serialVersionUID = 1L;
 
     private int _attributeCount = 0;
+    private JButton _addButton;
+    private JButton _removeButton;
     private JScrollPane _attributePane;
     private JTable _attributeTable;
     private DefaultTableModel _attributeModel;

@@ -45,13 +45,14 @@ public class RelationshipPane extends JPanel  implements ActionListener, Propert
 
         setEntityList();
 
-        JButton addButton = new JButton("+");
-        addButton.addActionListener(this);
-        JButton removeButton = new JButton("-");
+        _addButton = new JButton("+");
+        _addButton.addActionListener(this);
+        _removeButton = new JButton("-");
+        _removeButton.addActionListener(this);
         JPanel buttonPanel = new JPanel(new GridLayout(1, 10));
         buttonPanel.setPreferredSize(new Dimension(400, 40));
-        buttonPanel.add(addButton);
-        buttonPanel.add(removeButton);
+        buttonPanel.add(_addButton);
+        buttonPanel.add(_removeButton);
 
         // Add them dummies
         for (int i = 1; i < 8; i++) {
@@ -67,8 +68,8 @@ public class RelationshipPane extends JPanel  implements ActionListener, Propert
         JComboBox comboBox = new JComboBox();
         comboBox.addItemListener(this);
 
-        for (String entityName : EntityManager.nameList()) {
-            comboBox.addItem(entityName);
+        for (Entity entity : EntityManager.getAllEntities()) {
+            comboBox.addItem(entity.getName());
         }
 
         typeColumn.setCellEditor(new DefaultCellEditor(comboBox));
@@ -76,16 +77,44 @@ public class RelationshipPane extends JPanel  implements ActionListener, Propert
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String newEntityName = "rltn" + _relationshipCount++;
-        Entity defaultedEntity = EntityManager.getAllEntities().get(0);
+        if (e.getSource().equals(_addButton)) {
+            String newEntityName = "rltn" + _relationshipCount++;
+            Entity defaultedEntity = EntityManager.getAllEntities().get(0);
 
-        _storedEntity.addRelationship(newEntityName, defaultedEntity);
+            try {
+                _storedEntity.addRelationship(newEntityName, defaultedEntity);
+            }
+            catch (IllegalArgumentException iae) {
+                JOptionPane.showMessageDialog(this, iae.getMessage());
+                return;
+            }
 
-        _relationshipModel.addRow(new Object[] { newEntityName, defaultedEntity.getName() });
+            _relationshipModel.addRow(new Object[] { newEntityName, defaultedEntity.getName() });
 
-        // Force selection for Combo Box
-        int adjustedIndex = _relationshipModel.getRowCount() - 1;
-        _relationshipTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
+            // Force selection for Combo Box
+            int adjustedIndex = _relationshipModel.getRowCount() - 1;
+            _relationshipTable.setRowSelectionInterval(adjustedIndex, adjustedIndex);
+        }
+        else if (e.getSource().equals(_removeButton)) {
+            // If there are not currently any Relationships,
+            // then we've nothing to remove.
+            if (_relationshipModel.getRowCount() == 0) {
+                return;
+            }
+
+            int selectedRow = _relationshipTable.getSelectedRow();
+            Relationship rltn = _storedEntity.getRelationships().get(selectedRow);
+
+            if (JOptionPane.showConfirmDialog(this, "Remove " + rltn.getName() + "?") == JOptionPane.OK_OPTION) {
+                _storedEntity.removeRelationship(rltn.getName());
+                _relationshipModel.removeRow(selectedRow);
+
+                if (_relationshipModel.getRowCount() > 0) {
+                    int newSelection = selectedRow == 0 ? 0 : selectedRow - 1;
+                    _relationshipTable.setRowSelectionInterval(newSelection, newSelection);
+                }
+            }
+        }
     }
 
     @Override
@@ -158,6 +187,11 @@ public class RelationshipPane extends JPanel  implements ActionListener, Propert
                 }
             }
         }
+        else if (updates.get("name").equals("relationships-cleared") && e.equals(_storedEntity)) {
+            for (int row = 0; row < _relationshipModel.getRowCount(); row++) {
+                _relationshipModel.removeRow(row);
+            }
+        }
 
         setEntityList();
     }
@@ -190,4 +224,6 @@ public class RelationshipPane extends JPanel  implements ActionListener, Propert
     private String _storedName;
     private Entity _storedType;
     private Entity _storedEntity;
+    private JButton _addButton;
+    private JButton _removeButton;
 }

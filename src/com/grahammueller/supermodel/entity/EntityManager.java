@@ -1,5 +1,6 @@
 package com.grahammueller.supermodel.entity;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -73,6 +74,7 @@ public class EntityManager {
     /**
      * Attempts to update Entity name, if it is valid and no Entity already exists with the same name
      * 
+     * @param e The Entity
      * @param name The new name
      * @throws IllegalArgumentException Invalid Entity Name specified, or name already in use
      */
@@ -89,6 +91,21 @@ public class EntityManager {
         updates.put("new", newName);
 
         e._name = newName;
+
+        for (EntityManagerListener listener : _listeners) {
+            listener.entityUpdated(e, updates);
+        }
+    }
+
+    /**
+     * Notifies EntityManagerListeners that an Entity has cleared Relationships
+     * 
+     * @param e The Entity
+     * @throws IllegalArgumentException If Entity is not found
+     */
+    protected static void entityClearedRelationships(Entity e) throws IllegalArgumentException {
+        Map<String, Object> updates = new HashMap<String, Object>();
+        updates.put("name", "relationships-cleared");
 
         for (EntityManagerListener listener : _listeners) {
             listener.entityUpdated(e, updates);
@@ -138,35 +155,31 @@ public class EntityManager {
     }
 
     /**
-     * Iterates over and gathers all the managed Entity names
-     *
-     * @return A list of strings with all the Entity names
-     */
-    public static List<String> nameList() {
-        ArrayList<String> names = new ArrayList<String>();
-
-        for (Entity e : _entities) {
-            names.add(e.getName());
-        }
-
-        return names;
-    }
-
-    /**
      * Adds the passed listener to the list of listeners for Entity updates
      * @param eml The EntityManagerListener to be added
      */
     public static void registerForEntityUpdates(EntityManagerListener eml) {
-        _listeners.add(eml);
+        if (!_listeners.contains(eml)) {
+            _listeners.add(eml);
+        }
+    }
+
+    /**
+     * Removed the passed listener from the list of listeners for Entity updates
+     * @param eml The EntityManagerListener to be removed
+     */
+    public static void unregisterForEntityUpdates(EntityManagerListener eml) {
+        if (!_listeners.contains(eml)) {
+            _listeners.remove(eml);
+        }
     }
 
     /**
      * Gets all entities.
-     * TODO read-only or copy
      * @return All the Entity objects
      */
     public static List<Entity> getAllEntities() {
-        return _entities;
+        return Collections.unmodifiableList(_entities);
     }
 
     /**

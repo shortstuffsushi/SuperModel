@@ -7,6 +7,8 @@ public class Relationship {
     /**
      * Creates a Relationship for an Entity.
      * 
+     * TODO Make this class immutable
+     * 
      * @param name The name for the Relationship
      * @param entity The other Entity
      */

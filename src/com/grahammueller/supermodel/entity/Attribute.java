@@ -6,6 +6,8 @@ package com.grahammueller.supermodel.entity;
 public class Attribute {
     /**
      * Creates an Attribute for an Entity
+     * 
+     * TODO Make this class immutable
      *
      * @param type The AttributeType
      * @param name The Attribute name

@@ -4,12 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import com.grahammueller.supermodel.entity.Attribute;
 import com.grahammueller.supermodel.entity.AttributeType;
 import com.grahammueller.supermodel.entity.Entity;
@@ -321,14 +318,73 @@ public class EntityDriver {
         }
     }
 
+    @Test
+    public void testEntityAttributeRemove() {
+        Entity pkmn = new Entity("Pokemon");
+
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.addAttribute("name", AttributeType.STRING);
+
+        pkmn.removeAttribute("name");
+
+        assertEquals(1, pkmn.getAttributes().size());
+    }
+
+    @Test
+    public void testEntityAttributeRemovePK() {
+        Entity pkmn = new Entity("Pokemon");
+
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.addAttribute("name", AttributeType.STRING);
+        pkmn.setPrimaryKey("id", true);
+
+        pkmn.addRelationship("self", pkmn);
+
+        pkmn.removeAttribute("id");
+
+        assertEquals(1, pkmn.getAttributes().size());
+        assertEquals(0, pkmn.getRelationships().size());
+    }
+
+    @Test
+    public void testEntityAttributeRemoveNotFound() {
+        Entity pkmn = new Entity("Pokemon");
+
+        try {
+            pkmn.removeAttribute("id");
+        }
+        catch (IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals(0, pkmn.getAttributes().size());
+        assertEquals("Attribute not found", failureMessage);
+    }
+
     //////////////////
     // Relationship //
     //////////////////
     @Test
-    public void testRelationshipMissingName() {
-        try {
-            Entity e = new Entity("Pokemon");
+    public void testRelationshipMissingPK() {
+        Entity e = new Entity("Pokemon");
 
+        try {
+            e.addRelationship(null, e);
+        }
+        catch (IllegalArgumentException iae) {
+            failureMessage = iae.getMessage();
+        }
+
+        assertEquals("Must have a primary key Attribute to add Relationships", failureMessage);
+    }
+
+    @Test
+    public void testRelationshipMissingName() {
+        Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
+
+        try {
             e.addRelationship(null, e);
         }
         catch (IllegalArgumentException iae) {
@@ -340,9 +396,11 @@ public class EntityDriver {
 
     @Test
     public void testRelationshipNameTooShort() {
-        try {
-            Entity e = new Entity("Pokemon");
+        Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
+        try {
             e.addRelationship("", e);
         }
         catch (IllegalArgumentException iae) {
@@ -354,9 +412,11 @@ public class EntityDriver {
 
     @Test
     public void testIllegalCharactersInRelationshipName() {
-        try {
-            Entity e = new Entity("Pokemon");
+        Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
+        try {
             e.addRelationship("tw*n", e);
         }
         catch (IllegalArgumentException iae) {
@@ -368,9 +428,11 @@ public class EntityDriver {
 
     @Test
     public void testRelationshipNameStartsWithANumber() {
-        try {
-            Entity e = new Entity("Pokemon");
+        Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
+        try {
             e.addRelationship("315twin", e);
         }
         catch (IllegalArgumentException iae) {
@@ -383,6 +445,9 @@ public class EntityDriver {
     @Test
     public void testRelationshipWithNullEntity() {
         Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
+
         try {
             e.addRelationship("twin", null);
         }
@@ -396,6 +461,9 @@ public class EntityDriver {
     @Test
     public void testRelationshipWithUnknownEntity() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
+
         Entity trainer = new Entity("Trainer");
 
         // This is kind of unsafe... Just using for testing purposes
@@ -414,6 +482,8 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipNormalNameUpdate() {
         Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
         e.addRelationship("self", e);
         e.updateRelationshipName("self", "twin");
@@ -439,6 +509,8 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipNotFoundNameUpdate() {
         Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
         e.addRelationship("self", e);
 
@@ -455,6 +527,8 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipNameInUseNameUpdate() {
         Entity e = new Entity("Pokemon");
+        e.addAttribute("id", AttributeType.INTEGER);
+        e.setPrimaryKey("id", true);
 
         e.addRelationship("self", e);
         e.addRelationship("twin", e);
@@ -472,6 +546,9 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipNormalEntityUpdate() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
+
         Entity trainer = new Entity("Trainer");
 
         pkmn.addRelationship("owner", pkmn);
@@ -499,6 +576,9 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipNotFoundEntityUpdate() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
+
         Entity trainer = new Entity("Trainer");
 
         pkmn.addRelationship("owner", pkmn);
@@ -516,6 +596,8 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipNullEntityUpdate() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
 
         pkmn.addRelationship("owner", pkmn);
 
@@ -532,6 +614,9 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipUnknownEntityUpdate() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
+
         Entity trainer = new Entity("Trainer");
 
         pkmn.addRelationship("owner", pkmn);
@@ -552,17 +637,21 @@ public class EntityDriver {
     @Test
     public void testEntityRelationshipRemove() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
+
         Entity trainer = new Entity("Trainer");
 
-        pkmn.addRelationship("owner", pkmn);
+        pkmn.addRelationship("self", pkmn);
+        pkmn.addRelationship("owner", trainer);
 
         pkmn.removeRelationship("owner");
 
-        assertEquals(0, pkmn.getRelationships().size());
+        assertEquals(1, pkmn.getRelationships().size());
     }
 
     @Test
-    public void testEntityRemoveRelationshipNotFound() {
+    public void testEntityRelationshipRemoveNotFound() {
         Entity pkmn = new Entity("Pokemon");
 
         try {
@@ -609,11 +698,14 @@ public class EntityDriver {
     @Test
     public void testEntityToStringWithRelationships() {
         Entity pkmn = new Entity("Pokemon");
+        pkmn.addAttribute("id", AttributeType.INTEGER);
+        pkmn.setPrimaryKey("id", true);
+
         Entity trainer = new Entity("Trainer");
 
         pkmn.addRelationship("owner", trainer);
 
-        assertEquals("Pokemon$$owner:Trainer#", pkmn.toString());
+        assertEquals("Pokemon$id:INTEGER_PRIMARY_KEY#$owner:Trainer#", pkmn.toString());
     }
 
     @Test
@@ -682,7 +774,7 @@ public class EntityDriver {
     @Test
     public void testEntityFromStringWithRelationships() {
         Entity trainer = new Entity("Trainer");
-        Entity pkmn = Entity.fromString("Pokemon$$owner:Trainer#");
+        Entity pkmn = Entity.fromString("Pokemon$id:INTEGER_PRIMARY_KEY#$owner:Trainer#");
 
         assertNotNull(pkmn);
 
